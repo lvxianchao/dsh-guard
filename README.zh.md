@@ -166,6 +166,20 @@ GUARD_URL=http://127.0.0.1:3081 GUARD_PASSWORD=... node test/e2e.mjs
 
 插件只用了公开的 harness API：`webServer.register`、`webServer.tapIndex`、`webServer.getOrigin`、`connection.authenticatedUrl`。没有猴子补丁，没有改源码。
 
+## 赞助
+
+如果这个插件帮你省了点折腾的时间，欢迎请我喝杯咖啡：
+
+- ☕ **[爱发电](https://afdian.com/a/lvxianchao)** —— 国内，微信 / 支付宝
+- 🌍 **[Ko-fi](https://ko-fi.com/lvxianchao)** —— 国际，PayPal
+
+<details>
+<summary>微信赞赏码</summary>
+
+<p align="center"><img src="docs/wechat.jpg" width="220" alt="微信赞赏码"></p>
+
+</details>
+
 ## License
 
 MIT

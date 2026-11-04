@@ -167,6 +167,20 @@ GUARD_URL=http://127.0.0.1:3081 GUARD_PASSWORD=... node test/e2e.mjs
 
 The plugin uses only public harness APIs: `webServer.register`, `webServer.tapIndex`, `webServer.getOrigin`, and `connection.authenticatedUrl`. No monkey-patching, no source modification.
 
+## Sponsor
+
+If dsh-guard saved you some setup time, a coffee is welcome:
+
+- ☕ **[Afdian](https://afdian.com/a/lvxianchao)** — mainland China, WeChat / Alipay
+- 🌍 **[Ko-fi](https://ko-fi.com/lvxianchao)** — international, PayPal
+
+<details>
+<summary>WeChat tip QR</summary>
+
+<p align="center"><img src="docs/wechat.jpg" width="220" alt="WeChat tip QR"></p>
+
+</details>
+
 ## License
 
 MIT
