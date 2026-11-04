@@ -1,8 +1,15 @@
-# dsh-guard
+<p align="center">
+  <img src="docs/logo.svg" width="96" height="96" alt="dsh-guard">
+</p>
 
-A password gate for the [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) Web UI — one plugin that fixes four deployment problems at once.
+<h1 align="center">dsh-guard</h1>
 
-[中文说明](README.zh.md)
+<p align="center">
+  A password gate for the <a href="https://github.com/deepseek-ai/deepseek-harness">DeepSeek Harness</a> Web UI —
+  one plugin that fixes four deployment problems at once.
+</p>
+
+<p align="center"><a href="README.zh.md">中文说明</a></p>
 
 | Problem | Vanilla behaviour | dsh-guard |
 |---|---|---|
@@ -12,6 +19,16 @@ A password gate for the [DeepSeek Harness](https://github.com/deepseek-ai/deepse
 | UI breaks on plain HTTP | `crypto.randomUUID is not a function` outside a secure context | Injects a `getRandomValues` polyfill |
 
 Zero runtime dependencies (Node standard library only), no build step — `dsh plugin add` and it runs.
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/login.png" width="47%" alt="Login page">
+  &nbsp;
+  <img src="docs/logout.png" width="47%" alt="Signed-out page">
+</p>
+
+<p align="center"><sub>Login page &nbsp;·&nbsp; sign-out confirmation</sub></p>
 
 ## How it works
 

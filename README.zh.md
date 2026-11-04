@@ -1,8 +1,15 @@
-# dsh-guard
+<p align="center">
+  <img src="docs/logo.svg" width="96" height="96" alt="dsh-guard">
+</p>
 
-给 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（DSH）Web UI 加一道**密码闸门**：一个插件同时解决四件部署上的麻烦事。
+<h1 align="center">dsh-guard</h1>
 
-[English](README.md)
+<p align="center">
+  给 <a href="https://github.com/deepseek-ai/deepseek-harness">DeepSeek Harness</a>（DSH）Web UI 加一道<strong>密码闸门</strong>——
+  一个插件同时解决四件部署上的麻烦事。
+</p>
+
+<p align="center"><a href="README.md">English</a></p>
 
 | 麻烦 | 原生表现 | dsh-guard |
 |---|---|---|
@@ -12,6 +19,16 @@
 | 明文 HTTP 功能报错 | 非安全上下文下 `crypto.randomUUID is not a function` | 注入 polyfill 兜底 |
 
 零运行时依赖（只用 Node 标准库），没有构建步骤，`dsh plugin add` 装完即跑。
+
+## 截图
+
+<p align="center">
+  <img src="docs/login.png" width="47%" alt="登录页">
+  &nbsp;
+  <img src="docs/logout.png" width="47%" alt="退出页">
+</p>
+
+<p align="center"><sub>登录页 &nbsp;·&nbsp; 退出确认页</sub></p>
 
 ## 它怎么工作
 
