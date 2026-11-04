@@ -72,6 +72,13 @@ config:
 
 **3. 纯局域网** —— 明文 HTTP + 密码，最简单，也最不安全（会话 cookie 可被嗅探）。
 
+## 语言
+
+登录页和管理页跟随 DSH 的语言设置：插件读取 profile patch 文件
+（`~/.dsh/profiles/web/cordis.patch.yml`）里 `locale` 行的 `preference`，
+也就是 DSH 设置界面写入的同一个位置。目前支持中文和英文。没有显式偏好时，
+按浏览器的 `Accept-Language` 回退。
+
 ## 配置
 
 | 键 | 默认 | 说明 |

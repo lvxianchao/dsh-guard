@@ -72,6 +72,14 @@ Set the upstream to `http://<dsh-host>:3081` and enable WebSocket support. **No 
 
 **3. Plain LAN** — HTTP plus password. Simplest, least safe: the session cookie can be sniffed on a shared network.
 
+## Language
+
+The login and admin pages follow the harness language setting: the plugin reads
+`preference` from the `locale` row in the profile patch file (`~/.dsh/profiles/web/cordis.patch.yml`),
+which is exactly where the harness settings UI writes it. Chinese and English are
+supported. With no explicit preference the pages fall back to the browser's
+`Accept-Language`.
+
 ## Configuration
 
 | Key | Default | Meaning |
