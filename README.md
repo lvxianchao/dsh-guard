@@ -103,6 +103,19 @@ node -e "import('./lib/auth.js').then(m=>console.log(m.hashPassword(process.argv
 
 **This is not multi-user.** One password, one privilege level. The harness agent can execute code, so anyone who gets in has code execution on that host — which is the product's design, not a bug in the gate.
 
+## Admin page
+
+A shield button appears at the bottom-right of the harness UI once you are signed in. It opens `/__guard/admin` (bookmark the URL if you prefer):
+
+- change the password (the current one is required)
+- session lifetime, lockout threshold/duration, page title, repository link — **applied on save**
+- listen host/port — marked "takes effect after restart"
+- live session list (source IP, browser, last activity): kick one device, or sign out everywhere
+
+Anonymous visitors are redirected to the login page with no `next` echo, and the login page does not advertise the admin path.
+
+**Why not a harness settings page instead:** that requires a `dsh.client` bundle (React plus a build step), which takes the plugin from ~30 KB to hundreds of KB, adds a build toolchain to a project that otherwise has none, and ties it to the harness slot API while that API is still moving — a version mismatch can blank the whole settings screen. A standalone page stays build-free and survives harness upgrades.
+
 ## Troubleshooting
 
 | Symptom | Cause |
