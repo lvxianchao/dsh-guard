@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/logo.svg" width="96" height="96" alt="dsh-guard">
+  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-guard/main/docs/logo.svg" width="96" height="96" alt="dsh-guard">
 </p>
 
 <h1 align="center">dsh-guard</h1>
@@ -23,9 +23,9 @@
 ## 截图
 
 <p align="center">
-  <img src="docs/login.png" width="47%" alt="登录页">
+  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-guard/main/docs/login.png" width="47%" alt="登录页">
   &nbsp;
-  <img src="docs/logout.png" width="47%" alt="退出页">
+  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-guard/main/docs/logout.png" width="47%" alt="退出页">
 </p>
 
 <p align="center"><sub>登录页 &nbsp;·&nbsp; 退出确认页</sub></p>
@@ -46,7 +46,7 @@ DSH 的 `/api` 栅栏接受回环 authority；代理让每个上游请求都看�
 
 ```bash
 # npm（发布后）
-dsh plugin --profile web add dsh-guard
+dsh plugin --profile web add @lvxianchao/dsh-guard
 
 # 本地目录 / Git
 dsh plugin --profile web add /path/to/dsh-guard
@@ -176,7 +176,7 @@ GUARD_URL=http://127.0.0.1:3081 GUARD_PASSWORD=... node test/e2e.mjs
 <details>
 <summary>微信赞赏码</summary>
 
-<p align="center"><img src="docs/wechat.jpg" width="220" alt="微信赞赏码"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/lvxianchao/dsh-guard/main/docs/wechat.jpg" width="220" alt="微信赞赏码"></p>
 
 </details>
 

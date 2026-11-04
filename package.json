@@ -1,6 +1,6 @@
 {
-  "name": "dsh-guard",
-  "version": "0.1.0",
+  "name": "@lvxianchao/dsh-guard",
+  "version": "1.0.0",
   "description": "Password-gated reverse proxy for DeepSeek Harness Web UI: one login, automatic launch-token exchange, Host/Origin rewrite, and a secure-context polyfill. Turns the token-only harness into a deployable service.",
   "type": "module",
   "main": "lib/index.js",
@@ -8,11 +8,40 @@
     ".": "./lib/index.js",
     "./package.json": "./package.json"
   },
-  "files": ["lib", "README.md", "README.en.md"],
+  "files": [
+    "lib",
+    "README.md",
+    "README.zh.md",
+    "CHANGELOG.md",
+    "docs/logo.svg"
+  ],
   "license": "MIT",
-  "keywords": ["dsh", "dsh-plugin", "deepseek-harness", "auth", "reverse-proxy", "tls"],
+  "author": "lvxianchao",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lvxianchao/dsh-guard.git"
+  },
+  "homepage": "https://github.com/lvxianchao/dsh-guard#readme",
+  "bugs": {
+    "url": "https://github.com/lvxianchao/dsh-guard/issues"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "auth",
+    "reverse-proxy",
+    "tls",
+    "password",
+    "login",
+    "self-hosted",
+    "cordis"
+  ],
   "engines": {
     "node": ">=22.19"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "test": "node test/e2e.mjs"

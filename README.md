@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/logo.svg" width="96" height="96" alt="dsh-guard">
+  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-guard/main/docs/logo.svg" width="96" height="96" alt="dsh-guard">
 </p>
 
 <h1 align="center">dsh-guard</h1>
@@ -23,9 +23,9 @@ Zero runtime dependencies (Node standard library only), no build step — `dsh p
 ## Screenshots
 
 <p align="center">
-  <img src="docs/login.png" width="47%" alt="Login page">
+  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-guard/main/docs/login.png" width="47%" alt="Login page">
   &nbsp;
-  <img src="docs/logout.png" width="47%" alt="Signed-out page">
+  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-guard/main/docs/logout.png" width="47%" alt="Signed-out page">
 </p>
 
 <p align="center"><sub>Login page &nbsp;·&nbsp; sign-out confirmation</sub></p>
@@ -46,7 +46,7 @@ The harness fence accepts a loopback authority, so making every upstream request
 
 ```bash
 # npm (once published)
-dsh plugin --profile web add dsh-guard
+dsh plugin --profile web add @lvxianchao/dsh-guard
 
 # local directory / git
 dsh plugin --profile web add /path/to/dsh-guard
@@ -177,7 +177,7 @@ If dsh-guard saved you some setup time, a coffee is welcome:
 <details>
 <summary>WeChat tip QR</summary>
 
-<p align="center"><img src="docs/wechat.jpg" width="220" alt="WeChat tip QR"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/lvxianchao/dsh-guard/main/docs/wechat.jpg" width="220" alt="WeChat tip QR"></p>
 
 </details>
 
