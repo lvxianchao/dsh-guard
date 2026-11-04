@@ -1,0 +1,4 @@
+node_modules/
+*.log
+dsh-guard.json
+.DS_Store

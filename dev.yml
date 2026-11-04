@@ -1,0 +1,16 @@
+# Shadow instance overlay: mounts dsh-guard onto the real web profile without
+# editing it. Start with:
+#
+#   dsh --profile web --patch ./dev.yml --host 127.0.0.1 --port 3099 --no-open
+#
+# then run the harness on 3099 and the gate on 3100.
+- insert:
+    - id: guard
+      name: '/absolute/path/to/dsh-guard/lib/index.js'
+      config:
+        listenHost: '127.0.0.1'
+        listenPort: 3100
+        password: 'dev-only-password'
+        sessionDays: 1
+        polyfill: true
+        title: 'DSH (dev)'
