@@ -8,11 +8,17 @@
     ".": "./lib/index.js",
     "./package.json": "./package.json"
   },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
   "files": [
     "lib",
     "README.md",
     "README.zh.md",
     "CHANGELOG.md",
+    "cordis.patch.yml",
     "docs/logo.svg"
   ],
   "license": "MIT",
