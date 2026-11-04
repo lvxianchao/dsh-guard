@@ -48,23 +48,34 @@ The harness fence accepts a loopback authority, so making every upstream request
 # npm (once published)
 dsh plugin --profile web add @lvxianchao/dsh-guard
 
-# local directory / git
+# from GitHub, pinned to a release — recommended
+dsh plugin --profile web add "github:lvxianchao/dsh-guard#v1.0.0"
+
+# from a local checkout
 dsh plugin --profile web add /path/to/dsh-guard
-dsh plugin --profile web add "github:you/dsh-guard"
 ```
 
-Add the plugin row to `~/.dsh/profiles/web/cordis.patch.yml`:
+> **Pin a tag or a commit hash.** `github:owner/repo` without a `#` fragment
+> installs the tip of the default branch, not the latest release; `#v1.0.0`
+> installs that tag, and `#<commit-sha>` is the most reproducible.
+
+Installing is enough — the package declares `dsh.bundle`, so the guard row is
+mounted automatically. Restart `dsh`.
+
+**On first start a password is generated**, printed to the terminal and stored
+(hashed) in `<profile>/data/dsh-guard.json` with mode `0600`. To pin your own,
+add a row to `~/.dsh/profiles/web/cordis.patch.yml` (it overrides the bundle
+defaults):
 
 ```yaml
-- insert:
-    - id: guard
-      name: dsh-guard
-      config:
-        listenHost: '0.0.0.0'
-        listenPort: 3081
+- id: guard
+  config:
+    listenHost: '0.0.0.0'
+    listenPort: 3081
 ```
 
-Restart `dsh`. **On first start a password is generated**, printed to the terminal and stored (hashed) in `$DSH_HOME/dsh-guard.json` with mode `0600`. Set `password` or `passwordHash` to pin your own.
+Note that a profile patch replaces the whole `config` object, so restate every
+key you care about.
 
 > The harness itself must listen on loopback (its default). If it is bound to a LAN address, clients can bypass the gate by connecting there directly — the plugin detects this at startup and warns.
 

@@ -48,23 +48,29 @@ DSH 的 `/api` 栅栏接受回环 authority；代理让每个上游请求都看�
 # npm（发布后）
 dsh plugin --profile web add @lvxianchao/dsh-guard
 
-# 本地目录 / Git
+# 从 GitHub 安装，锁定 release —— 推荐
+dsh plugin --profile web add "github:lvxianchao/dsh-guard#v1.0.0"
+
+# 从本地目录安装
 dsh plugin --profile web add /path/to/dsh-guard
-dsh plugin --profile web add "github:you/dsh-guard"
 ```
 
-然后在 `~/.dsh/profiles/web/cordis.patch.yml` 里加：
+> **务必锁定 tag 或 commit。** `github:owner/repo` 不带 `#` 时装的是默认分支的最新
+> 提交，不是 release；`#v1.0.0` 锁定标签，`#<commit-sha>` 最精确可复现。
+
+装完即挂载——包内声明了 `dsh.bundle`，guard 行会自动叠加。重启 `dsh`。
+
+**首次启动会自动生成一个密码**，打印在终端并保存到 `<profile>/data/dsh-guard.json`（0600）。
+想固定密码就在 `~/.dsh/profiles/web/cordis.patch.yml` 里加一行覆盖（profile patch 优先于 bundle 默认值）：
 
 ```yaml
-- insert:
-    - id: guard
-      name: dsh-guard
-      config:
-        listenHost: '0.0.0.0'
-        listenPort: 3081
+- id: guard
+  config:
+    listenHost: '0.0.0.0'
+    listenPort: 3081
 ```
 
-重启 `dsh`。**首次启动会自动生成一个密码**，打印在终端并保存到 `$DSH_HOME/dsh-guard.json`（0600）。想固定密码就配 `password` 或 `passwordHash`。
+注意 profile patch 会整体替换 `config`，要改的键都得重写一遍。
 
 > 前提：DSH 自己必须绑回环（默认就是 `127.0.0.1`）。如果它绑在局域网 IP 上，客户端可以绕过闸门直连——插件启动时会检测并告警。
 
