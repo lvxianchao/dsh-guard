@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.1.0 — 2026-11-05
+
+### Added
+
+- **Sessions survive a restart.** The table is cached beside the password file (`dsh-web-guard-sessions-<port>.json`, mode 0600, atomic write), so upgrading or restarting DSH no longer signs every browser out — the open tab reconnects instead of hanging on "reconnecting". Rows that expired while the process was down are dropped on load.
+- **Dead-session redirect.** The injected client probes the new `/__guard/session` endpoint (200 = live, 401 = gone) when the tab becomes visible, when the browser comes back online, after a WebSocket close, and every 30s. A 401 sends the browser to the login page with `?next=`, so a genuine revocation (password change, sign-out-all) looks like a login prompt rather than a dead spinner.
+
+### Changed
+
+- Restarting the guard is no longer a way to sign everyone out. Use the admin page's "sign out all devices" — revocation is an explicit action now.
+
+### Security
+
+- The session cache stores SHA-256 hashes, never raw tokens. Neither the file nor a heap dump can mint a working cookie.
+
+
 ## 2.0.1 — 2026-11-05
 
 ### Internal
