@@ -23,12 +23,16 @@ Zero runtime dependencies (Node standard library only), no build step — `dsh p
 ## Screenshots
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-web-guard/main/docs/login.png" width="47%" alt="Login page">
+  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-web-guard/main/docs/login-en.png" width="47%" alt="Login page">
   &nbsp;
-  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-web-guard/main/docs/logout.png" width="47%" alt="Signed-out page">
+  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-web-guard/main/docs/logout-en.png" width="47%" alt="Signed-out page">
 </p>
 
-<p align="center"><sub>Login page &nbsp;·&nbsp; sign-out confirmation</sub></p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-web-guard/main/docs/admin-en.png" width="92%" alt="Admin page">
+</p>
+
+<p align="center"><sub>Login page &nbsp;·&nbsp; sign-out confirmation &nbsp;·&nbsp; admin page (password, session and lockout policy, listener, live sessions)</sub></p>
 
 ## How it works
 

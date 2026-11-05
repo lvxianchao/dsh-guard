@@ -28,7 +28,11 @@
   <img src="https://raw.githubusercontent.com/lvxianchao/dsh-web-guard/main/docs/logout.png" width="47%" alt="退出页">
 </p>
 
-<p align="center"><sub>登录页 &nbsp;·&nbsp; 退出确认页</sub></p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-web-guard/main/docs/admin.png" width="92%" alt="设置页">
+</p>
+
+<p align="center"><sub>登录页 &nbsp;·&nbsp; 退出确认页 &nbsp;·&nbsp; 设置页（改密码、会话与锁定策略、监听地址、在线设备）</sub></p>
 
 ## 它怎么工作
 
