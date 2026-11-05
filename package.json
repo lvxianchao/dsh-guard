@@ -1,7 +1,7 @@
 {
   "name": "@lvxianchao/dsh-web-guard",
-  "version": "1.0.0",
-  "description": "Password-gated reverse proxy for DeepSeek Harness Web UI: one login, automatic launch-token exchange, Host/Origin rewrite, and a secure-context polyfill. Turns the token-only harness into a deployable service.",
+  "version": "2.0.0",
+  "description": "Password login for the DeepSeek Harness Web UI, so it can be exposed on the internet: sign in from anywhere instead of chasing one-off tokens, with reverse-proxy quirks handled.",
   "type": "module",
   "main": "lib/index.js",
   "exports": {

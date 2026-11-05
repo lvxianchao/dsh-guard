@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.0.0 — 2026-11-05
 
 ### Breaking
 
@@ -10,6 +10,8 @@
 ### Added
 
 - Localised plugin metadata via `locale/en.json` and `locale/zh.json`, so the DSH plugin list shows a translated title and description.
+- The settings page opens in an overlay instead of navigating away, and closes only from its own Close button.
+- Header actions on the settings page are real buttons; the repository link moved into the title.
 - README (both languages): an explicit warning against disabling or uninstalling the gate, and recovery steps for when it has already happened.
 
 ## 1.0.0 — 2026-11-04
