@@ -11,6 +11,14 @@
 
 <p align="center"><a href="README.md">English</a></p>
 
+<p align="center">
+  <a href="https://www.npmjs.com/package/@lvxianchao/dsh-web-guard"><img src="https://img.shields.io/npm/v/@lvxianchao/dsh-web-guard?color=0ab887" alt="npm 版本"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/npm/l/@lvxianchao/dsh-web-guard" alt="MIT 许可证"></a>
+  <img src="https://img.shields.io/node/v/@lvxianchao/dsh-web-guard" alt="Node.js >= 22.19">
+  <img src="https://img.shields.io/badge/runtime_dependencies-0-brightgreen" alt="零运行时依赖">
+  <a href="https://github.com/deepseek-ai/deepseek-harness"><img src="https://img.shields.io/badge/DeepSeek_Harness-plugin-0e7490" alt="DeepSeek Harness 插件"></a>
+</p>
+
 | 麻烦 | 原生表现 | dsh-web-guard |
 |---|---|---|
 | 没有人类登录 | 只有进程启动时打印的 `?token=`，重启就换 | 一个访问密码 + 可吊销会话 |
@@ -49,7 +57,7 @@ DSH 的 `/api` 栅栏接受回环 authority；代理让每个上游请求都看�
 ## 安装
 
 ```bash
-# npm（发布后）
+# npm
 dsh plugin --profile web add @lvxianchao/dsh-web-guard
 
 # 从 GitHub 安装

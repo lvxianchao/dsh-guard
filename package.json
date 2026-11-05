@@ -33,6 +33,16 @@
   "bugs": {
     "url": "https://github.com/lvxianchao/dsh-web-guard/issues"
   },
+  "funding": [
+    {
+      "type": "individual",
+      "url": "https://afdian.com/a/lvxianchao"
+    },
+    {
+      "type": "individual",
+      "url": "https://ko-fi.com/lvxianchao"
+    }
+  ],
   "keywords": [
     "dsh",
     "dsh-plugin",

@@ -11,6 +11,14 @@
 
 <p align="center"><a href="README.zh.md">中文说明</a></p>
 
+<p align="center">
+  <a href="https://www.npmjs.com/package/@lvxianchao/dsh-web-guard"><img src="https://img.shields.io/npm/v/@lvxianchao/dsh-web-guard?color=0ab887" alt="npm version"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/npm/l/@lvxianchao/dsh-web-guard" alt="MIT license"></a>
+  <img src="https://img.shields.io/node/v/@lvxianchao/dsh-web-guard" alt="Node.js >= 22.19">
+  <img src="https://img.shields.io/badge/runtime_dependencies-0-brightgreen" alt="Zero runtime dependencies">
+  <a href="https://github.com/deepseek-ai/deepseek-harness"><img src="https://img.shields.io/badge/DeepSeek_Harness-plugin-0e7490" alt="DeepSeek Harness plugin"></a>
+</p>
+
 | Problem | Vanilla behaviour | dsh-web-guard |
 |---|---|---|
 | No human login | A per-process `?token=` printed to the terminal, new on every restart | One password + revocable sessions |
@@ -49,7 +57,7 @@ The harness fence accepts a loopback authority, so making every upstream request
 ## Install
 
 ```bash
-# npm (once published)
+# npm
 dsh plugin --profile web add @lvxianchao/dsh-web-guard
 
 # from GitHub
