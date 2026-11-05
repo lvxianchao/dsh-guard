@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.0.0 — 2026-11-05
+
+### Breaking
+
+- Renamed the package to `@lvxianchao/dsh-web-guard` (was `dsh-guard`) and the on-disk state file to `dsh-web-guard.json`. An old `dsh-guard.json` is **not** migrated: the gate generates a fresh password on first start and logs it once.
+- The display name is now **DSH Web Guard** everywhere — login page, sign-out page, admin page, log prefix and health payload.
+
+### Added
+
+- Localised plugin metadata via `locale/en.json` and `locale/zh.json`, so the DSH plugin list shows a translated title and description.
+- The settings page opens in an overlay instead of navigating away, and closes only from its own Close button.
+- Header actions on the settings page are real buttons; the repository link moved into the title.
+- README (both languages): an explicit warning against disabling or uninstalling the gate, and recovery steps for when it has already happened.
+
 ## 1.0.0 — 2026-11-04
 
 First stable release.

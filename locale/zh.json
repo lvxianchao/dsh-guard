@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "DSH Web Guard",
+    "description": "把 DSH Web 安全地开放到外网：自带密码登录页，凭密码就能从任何地方访问，不再依赖每次重启都会变的临时 token；反向代理和 HTTP 环境下的兼容问题也已处理好。"
+  }
+}
