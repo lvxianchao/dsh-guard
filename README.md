@@ -232,7 +232,7 @@ The plugin uses only public harness APIs: `webServer.register`, `webServer.tapIn
 DSH's built-in document preview cannot play video — opening an `.mp4` in the sidebar says the format is unsupported. [dsh-video-preview](https://github.com/lvxianchao/dsh-video-preview) adds a streaming video renderer for the same sidebar: `mp4` / `webm` / `mov`, byte-range seeking, no size cap.
 
 ```bash
-dsh plugin --profile web add "github:lvxianchao/dsh-video-preview"
+dsh plugin --profile web add @lvxianchao/dsh-video-preview
 ```
 
 The two plugins are independent — install either or both.

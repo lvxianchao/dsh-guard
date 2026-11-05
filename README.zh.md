@@ -235,7 +235,7 @@ git tag -a vX.Y.Z && git push origin main --tags
 DSH 自带的文档预览放不了视频——在侧边栏点开 `.mp4` 只会提示格式不支持。[dsh-video-preview](https://github.com/lvxianchao/dsh-video-preview) 给同一个侧边栏补上流式视频渲染器：`mp4` / `webm` / `mov`，支持字节范围拖动、没有大小上限。
 
 ```bash
-dsh plugin --profile web add "github:lvxianchao/dsh-video-preview"
+dsh plugin --profile web add @lvxianchao/dsh-video-preview
 ```
 
 两个插件互相独立，可以只装一个，也可以都装。
