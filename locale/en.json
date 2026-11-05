@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "DSH Web Guard",
+    "description": "Make DSH Web safe to expose on the internet: a built-in password login lets you sign in from anywhere, with no one-off tokens that change on every restart. Reverse-proxy and plain-HTTP quirks are handled for you."
+  }
+}
