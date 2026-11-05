@@ -48,18 +48,15 @@ The harness fence accepts a loopback authority, so making every upstream request
 # npm (once published)
 dsh plugin --profile web add @lvxianchao/dsh-guard
 
-# from GitHub, pinned to a release — recommended
-dsh plugin --profile web add "github:lvxianchao/dsh-guard#v1.0.0"
+# from GitHub
+dsh plugin --profile web add "github:lvxianchao/dsh-guard"
 
 # from a local checkout
 dsh plugin --profile web add /path/to/dsh-guard
 ```
 
-> **Pin a tag or a commit hash.** `github:owner/repo` without a `#` fragment
-> installs the tip of the default branch, not the latest release; `#v1.0.0`
-> installs that tag, and `#<commit-sha>` is the most reproducible.
-
-Installing is enough — the package declares `dsh.bundle`, so the guard row is
+`main` only ever carries released code (development happens on `dev`), so this
+installs the latest stable release. Installing is enough — the package declares `dsh.bundle`, so the guard row is
 mounted automatically. Restart `dsh`.
 
 **On first start a password is generated**, printed to the terminal and stored
@@ -177,6 +174,16 @@ GUARD_URL=http://127.0.0.1:3081 GUARD_PASSWORD=... node test/e2e.mjs
 `dev.yml` only needs the `insert` row shown above with `listenHost: 127.0.0.1` and a distinct port.
 
 The plugin uses only public harness APIs: `webServer.register`, `webServer.tapIndex`, `webServer.getOrigin`, and `connection.authenticatedUrl`. No monkey-patching, no source modification.
+
+## Companion plugin
+
+DSH's built-in document preview cannot play video — opening an `.mp4` in the sidebar says the format is unsupported. [dsh-video-preview](https://github.com/lvxianchao/dsh-video-preview) adds a streaming video renderer for the same sidebar: `mp4` / `webm` / `mov`, byte-range seeking, no size cap.
+
+```bash
+dsh plugin --profile web add "github:lvxianchao/dsh-video-preview"
+```
+
+The two plugins are independent — install either or both.
 
 ## Sponsor
 

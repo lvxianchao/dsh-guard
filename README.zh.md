@@ -48,17 +48,14 @@ DSH 的 `/api` 栅栏接受回环 authority；代理让每个上游请求都看�
 # npm（发布后）
 dsh plugin --profile web add @lvxianchao/dsh-guard
 
-# 从 GitHub 安装，锁定 release —— 推荐
-dsh plugin --profile web add "github:lvxianchao/dsh-guard#v1.0.0"
+# 从 GitHub 安装
+dsh plugin --profile web add "github:lvxianchao/dsh-guard"
 
 # 从本地目录安装
 dsh plugin --profile web add /path/to/dsh-guard
 ```
 
-> **务必锁定 tag 或 commit。** `github:owner/repo` 不带 `#` 时装的是默认分支的最新
-> 提交，不是 release；`#v1.0.0` 锁定标签，`#<commit-sha>` 最精确可复现。
-
-装完即挂载——包内声明了 `dsh.bundle`，guard 行会自动叠加。重启 `dsh`。
+`main` 只放已发布的代码（开发在 `dev` 分支），所以这条命令装到的就是最新稳定版。装完即挂载——包内声明了 `dsh.bundle`，guard 行会自动叠加。重启 `dsh`。
 
 **首次启动会自动生成一个密码**，打印在终端并保存到 `<profile>/data/dsh-guard.json`（0600）。
 想固定密码就在 `~/.dsh/profiles/web/cordis.patch.yml` 里加一行覆盖（profile patch 优先于 bundle 默认值）：
@@ -170,7 +167,26 @@ GUARD_URL=http://127.0.0.1:3081 GUARD_PASSWORD=... node test/e2e.mjs
 
 `dev.yml` 只需要上面那段 `insert`，把 `listenHost` 改成 `127.0.0.1`、端口换开即可。
 
+`main` 是发布分支，只放已发布并打过 tag 的代码；日常开发在 `dev` 分支，确认发版时才合并回 `main`。
+
+```bash
+git checkout dev
+# … 修改、提交、测试 …
+git checkout main && git merge --ff-only dev
+git tag -a vX.Y.Z && git push origin main --tags
+```
+
 插件只用了公开的 harness API：`webServer.register`、`webServer.tapIndex`、`webServer.getOrigin`、`connection.authenticatedUrl`。没有猴子补丁，没有改源码。
+
+## 配套插件
+
+DSH 自带的文档预览放不了视频——在侧边栏点开 `.mp4` 只会提示格式不支持。[dsh-video-preview](https://github.com/lvxianchao/dsh-video-preview) 给同一个侧边栏补上流式视频渲染器：`mp4` / `webm` / `mov`，支持字节范围拖动、没有大小上限。
+
+```bash
+dsh plugin --profile web add "github:lvxianchao/dsh-video-preview"
+```
+
+两个插件互相独立，可以只装一个，也可以都装。
 
 ## 赞助
 
