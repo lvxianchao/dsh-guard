@@ -173,9 +173,20 @@ node -e "import('./lib/auth.js').then(m=>console.log(m.hashPassword(process.argv
 - Session tokens are stored server-side as SHA-256 digests; cookies are `HttpOnly`, `SameSite=Lax`, and `Secure` when TLS is on.
 - Login POSTs are checked for a same-hostname `Origin`. The session cookie's `SameSite` attribute is the primary CSRF defence.
 - Repeated failures from one IP trigger a temporary lock (in-memory, cleared on restart).
-- `/logout` ends the current browser session. To revoke everything, change the password and restart, or delete `$DSH_HOME/dsh-web-guard.json`.
+- **The session table is cached on disk** (`<profile>/data/dsh-web-guard-sessions-<port>.json`, mode `0600`, atomic tmp+rename), so **restarting DSH no longer signs signed-in browsers out**. The file holds SHA-256 digests, never tokens — neither the cache nor a heap dump can mint a working cookie. The filename carries the listener port, so a shadow instance cannot overwrite the live one.
+- `/logout` ends the current browser session. To revoke everything (a suspected leak, say), use the admin page's **sign out all devices** — **a restart is not a revocation any more**.
 
 **This is not multi-user.** One password, one privilege level. The harness agent can execute code, so anyone who gets in has code execution on that host — which is the product's design, not a bug in the gate.
+
+## When the session is gone
+
+If the session disappears (password changed, sign-out-all, or no activity within `sessionDays`), an open tab does not sit on "reconnecting" forever:
+
+- it probes `/__guard/session` when the tab becomes visible, when the network comes back, after a WebSocket close, and every 30 seconds
+- only an explicit **401** triggers a redirect — a failed fetch (offline, server restarting) never does
+- the redirect carries `?next=`, so you land back where you were after signing in
+
+Restarts (upgrades, config changes) are invisible: the session table is restored from disk and the page reconnects on its own.
 
 ## Admin page
 

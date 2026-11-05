@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.1 — 2026-11-05
+
+### Docs
+
+- README and the admin page now describe the persisted session cache and the dead-session redirect; both still claimed sessions lived in memory and that a restart signed everyone out.
+- Screenshots re-shot with the corrected wording.
+
+
 ## 2.1.0 — 2026-11-05
 
 ### Added

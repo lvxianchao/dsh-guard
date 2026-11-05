@@ -167,9 +167,20 @@ node -e "import('./lib/auth.js').then(m=>console.log(m.hashPassword(process.argv
 - 会话 token 服务端只存 SHA-256 摘要；cookie 是 `HttpOnly` + `SameSite=Lax`，启用 TLS 时加 `Secure`。
 - 登录 POST 校验 `Origin` 的 hostname 与请求 `Host` 一致（只比 hostname，因为反代常剥端口）。CSRF 的第一道防线仍是 `SameSite`。
 - 同一 IP 连续失败会临时锁定（内存计数，重启清零）。
-- `/logout` 只退当前浏览器；要全部吊销就改密码并重启，或删掉 `$DSH_HOME/dsh-web-guard.json`。
+- **会话表现在会落盘**（`<profile>/data/dsh-web-guard-sessions-<port>.json`，`0600`，临时文件 + rename 原子写入），所以**重启 DSH 不会把已登录的浏览器踢下线**。文件里存的同样是 SHA-256 摘要，不是 token——拿到这个文件或内存 dump 都无法伪造 cookie。文件名带监听端口，影子实例不会覆盖正式实例。
+- `/logout` 只退当前浏览器。要全部吊销（比如怀疑泄露），用管理页的**退出所有设备**：**重启不再等于吊销**。
 
 **这不是多用户系统**：一个密码，一个权限级别。DSH 的 agent 本身能执行代码，任何登录者都拥有该机器的执行权限——这是产品设计，不是闸门的缺陷。
+
+## 掉线之后
+
+会话没了（改过密码、点了退出所有设备、或超过 `sessionDays` 没活动）时，已经开着的标签页不会卡在"重新连接中"：
+
+- 切回标签页、网络恢复、WebSocket 断开、以及每 30 秒，页面都会向 `/__guard/session` 探一次
+- 只有拿到明确的 **401** 才跳转（断网导致的请求失败不会误判）
+- 跳转目标带 `?next=`，登录后回到原来那个地址
+
+需要重启（升级、改配置）则完全无感：会话表会从磁盘恢复，页面自己重连回来。
 
 ## 管理页
 
