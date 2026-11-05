@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.1 — 2026-11-05
+
+### Internal
+
+- Publishing is automatic: pushing a `v*` tag publishes to npm from GitHub Actions through an OIDC trusted publisher, with provenance. A mismatched tag/version fails the run instead of shipping the wrong thing.
+
+
 ## 2.0.0 — 2026-11-05
 
 ### Breaking
