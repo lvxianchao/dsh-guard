@@ -1,12 +1,13 @@
 {
-  "name": "@lvxianchao/dsh-guard",
+  "name": "@lvxianchao/dsh-web-guard",
   "version": "1.0.0",
   "description": "Password-gated reverse proxy for DeepSeek Harness Web UI: one login, automatic launch-token exchange, Host/Origin rewrite, and a secure-context polyfill. Turns the token-only harness into a deployable service.",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
     ".": "./lib/index.js",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./locale/*": "./locale/*"
   },
   "dsh": {
     "bundle": {
@@ -15,6 +16,7 @@
   },
   "files": [
     "lib",
+    "locale",
     "README.md",
     "README.zh.md",
     "CHANGELOG.md",
@@ -25,11 +27,11 @@
   "author": "lvxianchao",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lvxianchao/dsh-guard.git"
+    "url": "git+https://github.com/lvxianchao/dsh-web-guard.git"
   },
-  "homepage": "https://github.com/lvxianchao/dsh-guard#readme",
+  "homepage": "https://github.com/lvxianchao/dsh-web-guard#readme",
   "bugs": {
-    "url": "https://github.com/lvxianchao/dsh-guard/issues"
+    "url": "https://github.com/lvxianchao/dsh-web-guard/issues"
   },
   "keywords": [
     "dsh",

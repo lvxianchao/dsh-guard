@@ -1,12 +1,12 @@
 # Bundle patch: mounted automatically when this package is installed as a
-# profile bundle (`dsh plugin --profile web add @lvxianchao/dsh-guard`).
+# profile bundle (`dsh plugin --profile web add @lvxianchao/dsh-web-guard`).
 #
 # Installing the package therefore needs no manual `cordis.patch.yml` edit.
 # Anything set in the profile's own patch file still wins, because profile
 # patches are applied after bundle patches.
 - insert:
     - id: guard
-      name: '@lvxianchao/dsh-guard'
+      name: '@lvxianchao/dsh-web-guard'
       config:
         listenHost: '0.0.0.0'
         listenPort: 3081
