@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-guard/main/docs/logo.svg" width="96" height="96" alt="dsh-guard">
+  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-web-guard/main/docs/logo.svg" width="96" height="96" alt="DSH Web Guard">
 </p>
 
-<h1 align="center">dsh-guard</h1>
+<h1 align="center">DSH Web Guard</h1>
 
 <p align="center">
   给 <a href="https://github.com/deepseek-ai/deepseek-harness">DeepSeek Harness</a>（DSH）Web UI 加一道<strong>密码闸门</strong>——
@@ -11,7 +11,7 @@
 
 <p align="center"><a href="README.md">English</a></p>
 
-| 麻烦 | 原生表现 | dsh-guard |
+| 麻烦 | 原生表现 | dsh-web-guard |
 |---|---|---|
 | 没有人类登录 | 只有进程启动时打印的 `?token=`，重启就换 | 一个访问密码 + 可吊销会话 |
 | 反代一律 403 | `/api` 栅栏要求 `Host` 原样转发，NPM/Caddy 通常会改写 | 代理把 `Host`/`Origin` 改写成回环 authority，天然放行 |
@@ -23,9 +23,9 @@
 ## 截图
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-guard/main/docs/login.png" width="47%" alt="登录页">
+  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-web-guard/main/docs/login.png" width="47%" alt="登录页">
   &nbsp;
-  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-guard/main/docs/logout.png" width="47%" alt="退出页">
+  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-web-guard/main/docs/logout.png" width="47%" alt="退出页">
 </p>
 
 <p align="center"><sub>登录页 &nbsp;·&nbsp; 退出确认页</sub></p>
@@ -33,7 +33,7 @@
 ## 它怎么工作
 
 ```
-浏览器 ──HTTP(S)──> dsh-guard :3081 ──> DSH 监听器 (回环)
+浏览器 ──HTTP(S)──> dsh-web-guard :3081 ──> DSH 监听器 (回环)
                         │
                         ├─ 未登录：/login
                         ├─ 已登录：转发，Host/Origin 改写为回环 authority
@@ -46,18 +46,18 @@ DSH 的 `/api` 栅栏接受回环 authority；代理让每个上游请求都看�
 
 ```bash
 # npm（发布后）
-dsh plugin --profile web add @lvxianchao/dsh-guard
+dsh plugin --profile web add @lvxianchao/dsh-web-guard
 
 # 从 GitHub 安装
-dsh plugin --profile web add "github:lvxianchao/dsh-guard"
+dsh plugin --profile web add "github:lvxianchao/dsh-web-guard"
 
 # 从本地目录安装
-dsh plugin --profile web add /path/to/dsh-guard
+dsh plugin --profile web add /path/to/dsh-web-guard
 ```
 
 `main` 只放已发布的代码（开发在 `dev` 分支），所以这条命令装到的就是最新稳定版。装完即挂载——包内声明了 `dsh.bundle`，guard 行会自动叠加。重启 `dsh`。
 
-**首次启动会自动生成一个密码**，打印在终端并保存到 `<profile>/data/dsh-guard.json`（0600）。
+**首次启动会自动生成一个密码**，打印在终端并保存到 `<profile>/data/dsh-web-guard.json`（0600）。
 想固定密码就在 `~/.dsh/profiles/web/cordis.patch.yml` 里加一行覆盖（profile patch 优先于 bundle 默认值）：
 
 ```yaml
@@ -70,6 +70,43 @@ dsh plugin --profile web add /path/to/dsh-guard
 注意 profile patch 会整体替换 `config`，要改的键都得重写一遍。
 
 > 前提：DSH 自己必须绑回环（默认就是 `127.0.0.1`）。如果它绑在局域网 IP 上，客户端可以绕过闸门直连——插件启动时会检测并告警。
+
+## ⚠️ 这是入口，不是可以随手关掉的插件
+
+装上之后，**dsh-web-guard 就是唯一入口**：它监听 3081，把请求转给只听回环的 DSH（3080）。插件一旦不加载，3081 就不再监听，**内网和外网会同时打不开**——而 DSH 本体还活着，会话和数据都在，只是你够不着它。
+
+特别提醒：**如果你把这个地址开放到了外网，这一条要格外当心。** 关掉插件等于把门焊死，而你正站在门外。
+
+所以请记住三件事：
+
+1. **不要卸载它，也不要让它被禁用。** 具体是：不要执行 `dsh plugin --profile web remove @lvxianchao/dsh-web-guard`；不要从 profile 的 `package.json` 里删掉 `dsh.profile.bundles` 中的这一项；也不要在 `cordis.patch.yml` 里给它加 `disabled: true`。
+2. **DSH 的「设置 → 插件」页是只读清单**，只有状态标签（已启用 / 未启用 / 加载失败），没有开关。别去那里找关闭按钮——也正因为没有开关，误关基本只发生在命令行里。
+3. 升级、改配置、`systemctl restart dsh-web` 都是安全的；只有"让它不加载"才危险。
+
+### 不小心关掉了，怎么救
+
+先别慌：**DSH 本体一直在 `127.0.0.1:3080` 跑着，会话、工作区、密码都没丢**，丢的只是门口那一层。恢复只要两条命令，而且**完全不依赖这个插件本身**：
+
+```bash
+# 1) 重新装回（本地目录装的就用 file:，没装过就用 GitHub）
+dsh plugin --profile web add file:/path/to/dsh-web-guard
+# 或：dsh plugin --profile web add github:lvxianchao/dsh-web-guard
+
+# 2) 重启，3081 会重新监听
+sudo systemctl restart dsh-web
+```
+
+如果当初是加了 `disabled: true` 弄没的，把那一行删掉再重启即可。**密码不用重设**——哈希存在 `<profile>/data/dsh-web-guard.json`，只要没删这个文件就还在。
+
+**真正的坑不在这两条命令，而在于：此刻你已经连不上这台机器了。**
+
+闸门只代理 DSH 的 HTTP 入口，不碰 SSH；但如果你把远程访问都收在这一个域名上，那插件一没，你就只剩一条路——**一条不经过这个插件的后路**。至少准备一条，并且**现在就验证它真的能用**（别等出事才发现自己没配）：
+
+- 宿主控制台（PVE / ESXi / 云厂商 VNC）→ 进容器或虚机 → 执行上面两条命令；
+- 或者一条独立的 SSH 通道（内网直连、跳板机、VPN）。
+
+
+最后一句：**别把这两条恢复命令只存在这台机器上。** 它挂的时候你也看不到它，抄一份到你能从外面打开的地方。
 
 ## 三种部署拓扑
 
@@ -126,7 +163,7 @@ node -e "import('./lib/auth.js').then(m=>console.log(m.hashPassword(process.argv
 - 会话 token 服务端只存 SHA-256 摘要；cookie 是 `HttpOnly` + `SameSite=Lax`，启用 TLS 时加 `Secure`。
 - 登录 POST 校验 `Origin` 的 hostname 与请求 `Host` 一致（只比 hostname，因为反代常剥端口）。CSRF 的第一道防线仍是 `SameSite`。
 - 同一 IP 连续失败会临时锁定（内存计数，重启清零）。
-- `/logout` 只退当前浏览器；要全部吊销就改密码并重启，或删掉 `$DSH_HOME/dsh-guard.json`。
+- `/logout` 只退当前浏览器；要全部吊销就改密码并重启，或删掉 `$DSH_HOME/dsh-web-guard.json`。
 
 **这不是多用户系统**：一个密码，一个权限级别。DSH 的 agent 本身能执行代码，任何登录者都拥有该机器的执行权限——这是产品设计，不是闸门的缺陷。
 
@@ -153,7 +190,7 @@ node -e "import('./lib/auth.js').then(m=>console.log(m.hashPassword(process.argv
 | 界面报 `randomUUID` | 把 `polyfill` 关掉了 |
 | 局域网能直连 DSH 端口 | DSH 绑的不是回环，见启动告警 |
 
-日志统一带 `[dsh-guard]` 前缀，与 DSH 自身日志在同一个 journal 里。成功请求不记录（Web UI 会持续轮询），只记失败和慢请求。
+日志统一带 `[dsh-web-guard]` 前缀，与 DSH 自身日志在同一个 journal 里。成功请求不记录（Web UI 会持续轮询），只记失败和慢请求。
 
 ## 开发
 
@@ -198,7 +235,7 @@ dsh plugin --profile web add "github:lvxianchao/dsh-video-preview"
 <details>
 <summary>微信赞赏码</summary>
 
-<p align="center"><img src="https://raw.githubusercontent.com/lvxianchao/dsh-guard/main/docs/wechat.jpg" width="220" alt="微信赞赏码"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/lvxianchao/dsh-web-guard/main/docs/wechat.jpg" width="220" alt="微信赞赏码"></p>
 
 </details>
 

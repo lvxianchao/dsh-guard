@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-guard/main/docs/logo.svg" width="96" height="96" alt="dsh-guard">
+  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-web-guard/main/docs/logo.svg" width="96" height="96" alt="DSH Web Guard">
 </p>
 
-<h1 align="center">dsh-guard</h1>
+<h1 align="center">DSH Web Guard</h1>
 
 <p align="center">
   A password gate for the <a href="https://github.com/deepseek-ai/deepseek-harness">DeepSeek Harness</a> Web UI —
@@ -11,7 +11,7 @@
 
 <p align="center"><a href="README.zh.md">中文说明</a></p>
 
-| Problem | Vanilla behaviour | dsh-guard |
+| Problem | Vanilla behaviour | dsh-web-guard |
 |---|---|---|
 | No human login | A per-process `?token=` printed to the terminal, new on every restart | One password + revocable sessions |
 | `/api` returns 403 behind a proxy | The browser-trust fence requires `Host` to arrive unrewritten; NPM/Caddy rewrite it | The proxy rewrites `Host`/`Origin` to the loopback authority, which the fence accepts |
@@ -23,9 +23,9 @@ Zero runtime dependencies (Node standard library only), no build step — `dsh p
 ## Screenshots
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-guard/main/docs/login.png" width="47%" alt="Login page">
+  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-web-guard/main/docs/login.png" width="47%" alt="Login page">
   &nbsp;
-  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-guard/main/docs/logout.png" width="47%" alt="Signed-out page">
+  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-web-guard/main/docs/logout.png" width="47%" alt="Signed-out page">
 </p>
 
 <p align="center"><sub>Login page &nbsp;·&nbsp; sign-out confirmation</sub></p>
@@ -33,7 +33,7 @@ Zero runtime dependencies (Node standard library only), no build step — `dsh p
 ## How it works
 
 ```
-browser ──HTTP(S)──> dsh-guard :3081 ──> DSH listener (loopback)
+browser ──HTTP(S)──> dsh-web-guard :3081 ──> DSH listener (loopback)
                           │
                           ├─ not signed in → /login
                           ├─ signed in → forward, Host/Origin rewritten to loopback
@@ -46,13 +46,13 @@ The harness fence accepts a loopback authority, so making every upstream request
 
 ```bash
 # npm (once published)
-dsh plugin --profile web add @lvxianchao/dsh-guard
+dsh plugin --profile web add @lvxianchao/dsh-web-guard
 
 # from GitHub
-dsh plugin --profile web add "github:lvxianchao/dsh-guard"
+dsh plugin --profile web add "github:lvxianchao/dsh-web-guard"
 
 # from a local checkout
-dsh plugin --profile web add /path/to/dsh-guard
+dsh plugin --profile web add /path/to/dsh-web-guard
 ```
 
 `main` only ever carries released code (development happens on `dev`), so this
@@ -60,7 +60,7 @@ installs the latest stable release. Installing is enough — the package declare
 mounted automatically. Restart `dsh`.
 
 **On first start a password is generated**, printed to the terminal and stored
-(hashed) in `<profile>/data/dsh-guard.json` with mode `0600`. To pin your own,
+(hashed) in `<profile>/data/dsh-web-guard.json` with mode `0600`. To pin your own,
 add a row to `~/.dsh/profiles/web/cordis.patch.yml` (it overrides the bundle
 defaults):
 
@@ -75,6 +75,43 @@ Note that a profile patch replaces the whole `config` object, so restate every
 key you care about.
 
 > The harness itself must listen on loopback (its default). If it is bound to a LAN address, clients can bypass the gate by connecting there directly — the plugin detects this at startup and warns.
+
+## ⚠️ This is the front door, not an optional plugin
+
+Once installed, **dsh-web-guard is the only way in**: it listens on 3081 and forwards to a DSH that is bound to loopback only (3080). If the plugin stops loading, 3081 stops listening and **both your LAN and the internet lose access at once** — while DSH itself keeps running, with your sessions and data intact. That is the dangerous shape: the door is welded shut and you are standing outside it.
+
+**If you exposed this address to the internet, take this seriously.**
+
+Three rules:
+
+1. **Do not uninstall it and do not disable it.** Concretely: don't run `dsh plugin --profile web remove @lvxianchao/dsh-web-guard`, don't drop the entry from `dsh.profile.bundles` in the profile's `package.json`, and don't add `disabled: true` to it in `cordis.patch.yml`.
+2. **DSH's Settings → Plugins page is a read-only inventory** — status tags only (enabled / disabled / failed), no toggles. Don't go looking for an off switch there; accidents happen on the command line instead.
+3. Upgrading, editing config and `systemctl restart dsh-web` are all safe. Only "making it not load" is not.
+
+### If you closed it by accident
+
+Relax: **DSH is still running on `127.0.0.1:3080`; sessions, workspace and password are all intact.** Only the gate is gone. Recovery takes two commands and **does not depend on the plugin being loaded**:
+
+```bash
+# 1) install it again (use file: if you installed from a checkout)
+dsh plugin --profile web add file:/path/to/dsh-web-guard
+# or: dsh plugin --profile web add github:lvxianchao/dsh-web-guard
+
+# 2) restart, and 3081 starts listening again
+sudo systemctl restart dsh-web
+```
+
+If you removed it by adding `disabled: true`, delete that line and restart. **Your password is not lost** — the hash lives in `<profile>/data/dsh-web-guard.json`; leave that file alone.
+
+**The real trap is not these two commands — it is that you can no longer reach the machine.**
+
+The gate only proxies DSH's HTTP entry point; it does not touch SSH. But if all your remote access funnels through this one hostname, losing the plugin leaves you exactly one option: **a path that does not go through it.** Have one ready, and **verify it now**, not after the incident:
+
+- a hypervisor console (PVE / ESXi / cloud VNC) into the container or VM, then run the two commands;
+- or an independent SSH path (direct LAN, bastion, or VPN).
+
+
+One last thing: **do not keep these recovery commands only on the machine that hosts the gate.** Copy them somewhere you can open from outside.
 
 ## Deployment topologies
 
@@ -132,7 +169,7 @@ node -e "import('./lib/auth.js').then(m=>console.log(m.hashPassword(process.argv
 - Session tokens are stored server-side as SHA-256 digests; cookies are `HttpOnly`, `SameSite=Lax`, and `Secure` when TLS is on.
 - Login POSTs are checked for a same-hostname `Origin`. The session cookie's `SameSite` attribute is the primary CSRF defence.
 - Repeated failures from one IP trigger a temporary lock (in-memory, cleared on restart).
-- `/logout` ends the current browser session. To revoke everything, change the password and restart, or delete `$DSH_HOME/dsh-guard.json`.
+- `/logout` ends the current browser session. To revoke everything, change the password and restart, or delete `$DSH_HOME/dsh-web-guard.json`.
 
 **This is not multi-user.** One password, one privilege level. The harness agent can execute code, so anyone who gets in has code execution on that host — which is the product's design, not a bug in the gate.
 
@@ -159,7 +196,7 @@ Anonymous visitors are redirected to the login page with no `next` echo, and the
 | `randomUUID is not a function` | `polyfill` is disabled |
 | LAN can still reach the harness port | The harness is not bound to loopback — see the startup warning |
 
-All log lines are prefixed `[dsh-guard]` and share the harness's journal stream. Successful requests are not logged (the Web UI polls constantly); only failures and slow requests are.
+All log lines are prefixed `[dsh-web-guard]` and share the harness's journal stream. Successful requests are not logged (the Web UI polls constantly); only failures and slow requests are.
 
 ## Development
 
@@ -187,7 +224,7 @@ The two plugins are independent — install either or both.
 
 ## Sponsor
 
-If dsh-guard saved you some setup time, a coffee is welcome:
+If dsh-web-guard saved you some setup time, a coffee is welcome:
 
 - ☕ **[Afdian](https://afdian.com/a/lvxianchao)** — mainland China, WeChat / Alipay
 - 🌍 **[Ko-fi](https://ko-fi.com/lvxianchao)** — international, PayPal
@@ -195,7 +232,7 @@ If dsh-guard saved you some setup time, a coffee is welcome:
 <details>
 <summary>WeChat tip QR</summary>
 
-<p align="center"><img src="https://raw.githubusercontent.com/lvxianchao/dsh-guard/main/docs/wechat.jpg" width="220" alt="WeChat tip QR"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/lvxianchao/dsh-web-guard/main/docs/wechat.jpg" width="220" alt="WeChat tip QR"></p>
 
 </details>
 
