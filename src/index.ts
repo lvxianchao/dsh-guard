@@ -66,7 +66,6 @@ interface GuardConfig {
   maxAttempts: number
   lockMinutes: number
   tls: GuardTlsConfig | null
-  publicUrl: string
 }
 
 const DEFAULTS: GuardConfig = {
@@ -81,7 +80,6 @@ const DEFAULTS: GuardConfig = {
   maxAttempts: 5,
   lockMinutes: 5,
   tls: null,
-  publicUrl: '',
 }
 
 /** A request carrying a live session cookie. */

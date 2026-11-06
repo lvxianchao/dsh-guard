@@ -4,24 +4,37 @@
 
 ### Breaking
 
-- **The settings surface moved into DSH Settings.** v3 ships a `dsh.client` bundle that adds a native **DSH Web Guard** page to the harness Settings panel (and removes the old floating shield button and the server-rendered admin page). The page follows the harness light/dark theme, uses the harness scrolling and keyboard behaviour, and is the only management surface; `/login` still works when opened directly.
-- **Requires DSH `0.2.2-rc.1` or newer** (`engines.dsh: >=0.2.2-rc.1 <0.3.0`). On an incompatible host the whole bundle is skipped — the gate then does not listen at all, which is the safe direction for a front door, but upgrade DSH before upgrading this plugin.
-- **The sources are TypeScript now.** The published package still ships plain JS and has no runtime dependencies, so `dsh plugin add` needs no toolchain; building is a maintainer concern.
+- **Management moved into the harness.** The bottom-right shield button, its iframe overlay and the server-rendered `/__guard/admin` page are gone. A new `dsh.client` bundle registers a native **DSH Web Guard** page in the harness Settings panel (Settings → DSH Web Guard): password change, session lifetime, lockout threshold/duration, listener address/port, the live session list (per-device sign out, kick, sign out everywhere). `/login` and `/logout` stay standalone documents.
+- **Requires DSH `0.2.2-rc.1` or newer** (`engines.dsh: >=0.2.2-rc.1 <0.3.0`). An incompatible host skips the whole bundle — for a front door that means the gate does not start at all, which is the safe direction; upgrade DSH before upgrading the plugin.
+- **The sources are TypeScript now.** The published package still ships plain JS with zero runtime dependencies, so installing needs no toolchain; `npm run build` is a maintainer command.
 
 ### Added
 
-- Native settings page in the harness: password change, session lifetime, lockout threshold/duration, listener address and port, live session list with per-device sign out (current device) and revoke (other devices), sign out everywhere.
-- JSON API behind the native page (`/__guard/api/*`) sharing the same mutators as the form routes.
-- Light/dark palettes for the login and sign-out pages: they follow the harness theme preference (the `ui-theme` row the Appearance control writes into the profile patch), fall back to the operating system when that preference is `system`/unset, and accept `?theme=light|dark` for an explicit override.
-- Removed the injected fallback shield/overlay and the server-rendered `/__guard/admin` page: the native settings page is the only management surface, so there is nothing left to cover the composer or clip on mobile.
+- Native settings page in the harness, rendering inside the host React tree so it inherits the harness light/dark theme, scrolling, focus handling and mobile layout.
+- JSON API behind it (`/__guard/api/state|settings|password|kick|logout-all`) with strict validation, contract error codes and the same CSRF checks as the login form.
+- Login and sign-out pages follow the harness light/dark preference (the `ui-theme` row the Appearance control writes into the profile patch), fall back to the operating system when that preference is `system`/unset, and accept `?theme=light|dark` as an explicit override.
+- "Restart to apply" is surfaced explicitly: listener changes are saved and reported as configured values plus a pending-restart flag instead of appearing to be lost.
 
 ### Changed
 
-- README and AGENTS.md describe the v3 architecture: `src/` → `lib/` build and the native settings page.
+- The locale reader now shares a generic profile-preference reader with the new theme reader.
+- The plain-HTTP `crypto.randomUUID` shim and the dead-session watchdog in the served index are unchanged; everything else that used to be injected is removed.
+- Settings page copy is localised (English and Chinese) and follows the harness language.
+
+### Removed
+
+- The injected fallback shield/overlay entry and the server-rendered `/__guard/admin` document, together with the `/__guard/kill` and `/__guard/logout-all` form routes that only fed it.
+- Admin-only server copy and the old admin screenshots.
+
+### Upgrade
+
+1. `dsh plugin --profile web add @lvxianchao/dsh-web-guard@3.0.0` (or reinstall from the same source you use).
+2. `sudo systemctl restart dsh-web` (or however the harness is supervised).
+3. Open **Settings → DSH Web Guard**. The password hash, session cache and settings file keep their v2 layouts, so the upgrade signs nobody out and your configuration carries over.
 
 ### Internal
 
-- Build: `tsc` for the server half, `esbuild` for the single-file client bundle; `lib/` is committed so every install path gets the same prebuilt bytes, and CI rejects stale artifacts.
+- Build: `tsc` for the server half, `esbuild` for the single-file client bundle; `lib/` is committed so npm, `github:` and checkout installs all serve the same prebuilt bytes, and CI rejects stale artifacts.
 - CI: typecheck + build + artifact freshness on every push and pull request; the release workflow builds before publishing.
 
 ## 2.1.1 — 2026-11-05

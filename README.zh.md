@@ -6,7 +6,7 @@
 
 <p align="center">
   给 <a href="https://github.com/deepseek-ai/deepseek-harness">DeepSeek Harness</a>（DSH）Web UI 加一道<strong>密码闸门</strong>——
-  一个插件同时解决四件部署上的麻烦事。
+  一个插件同时解决四件部署上的麻烦事，并提供原生的设置页。
 </p>
 
 <p align="center"><a href="README.md">English</a></p>
@@ -17,6 +17,7 @@
   <img src="https://img.shields.io/node/v/@lvxianchao/dsh-web-guard" alt="Node.js >= 22.19">
   <img src="https://img.shields.io/badge/runtime_dependencies-0-brightgreen" alt="零运行时依赖">
   <a href="https://github.com/deepseek-ai/deepseek-harness"><img src="https://img.shields.io/badge/DeepSeek_Harness-plugin-0e7490" alt="DeepSeek Harness 插件"></a>
+  <img src="https://img.shields.io/badge/DSH-%E2%89%A50.2.2--rc.1%20%3C0.3.0-0e7490" alt="DSH >= 0.2.2-rc.1">
 </p>
 
 | 麻烦 | 原生表现 | dsh-web-guard |
@@ -42,7 +43,7 @@
   <img src="https://raw.githubusercontent.com/lvxianchao/dsh-web-guard/main/docs/settings.png" width="92%" alt="原生安全设置页">
 </p>
 
-<p align="center"><sub>登录页 &nbsp;·&nbsp; 退出确认页 &nbsp;·&nbsp; DSH 设置面板里的原生「安全」页（跟随 DSH 明暗主题）</sub></p>
+<p align="center"><sub>登录页 &nbsp;·&nbsp; 退出确认页 &nbsp;·&nbsp; DSH 设置面板里的原生 DSH Web Guard 页（跟随 DSH 明暗主题）</sub></p>
 
 ## 它怎么工作
 
@@ -55,6 +56,8 @@
 ```
 
 DSH 的 `/api` 栅栏接受回环 authority；代理让每个上游请求都看起来来自回环，所以不再 403。密码验证发生在代理里，**不是前端遮罩**——没有 cookie 的请求在进入 DSH 之前就被挡下。
+
+浏览器半（`dsh.client`）只负责把管理页挂进 DSH 的设置面板；闸门本身完全在服务端，即使浏览器半加载失败也照常工作。
 
 ## 安装
 
@@ -82,6 +85,8 @@ dsh plugin --profile web add /path/to/dsh-web-guard
 ```
 
 注意 profile patch 会整体替换 `config`，要改的键都得重写一遍。
+
+**从 v2 升级**：右下角的浮动盾牌和 `/__guard/admin` 已移除，管理入口改为 **设置 → DSH Web Guard**。重新安装（或升级到 `3.0.0`）并重启 DSH 即可；密码哈希、会话缓存和设置文件格式不变，升级不会把人踢下线，原有配置也会保留。
 
 > 前提：DSH 自己必须绑回环（默认就是 `127.0.0.1`）。如果它绑在局域网 IP 上，客户端可以绕过闸门直连——插件启动时会检测并告警。
 
@@ -150,6 +155,12 @@ config:
 也就是 DSH 设置界面写入的同一个位置。目前支持中文和英文。没有显式偏好时，
 按浏览器的 `Accept-Language` 回退。
 
+## 主题
+
+原生设置页属于 DSH 的一部分，直接跟随 DSH 的明暗设置。
+
+登录页和退出页是 DSH 页面出现之前独立渲染的文档，所以服务端会从 profile patch 里读取 DSH 的选择（`- id: ui-theme` → `config.preference`，也就是「外观」控件写入的那一行），在首屏绘制前强制使用对应配色。优先级：`?theme=light|dark` → DSH 设置 → 系统（`prefers-color-scheme`，仅当 DSH 设为「跟随系统」或从未设置）。
+
 ## 配置
 
 | 键 | 默认 | 说明 |
@@ -162,7 +173,8 @@ config:
 | `maxAttempts` | `5` | 连续失败次数，超过临时锁定 |
 | `lockMinutes` | `5` | 锁定时长 |
 | `polyfill` | `true` | 注入 `crypto.randomUUID` 兜底 |
-| `title` | `DeepSeek Harness` | 登录页标题 |
+| `title` | `DSH Web Guard` | 登录页标题 |
+| `repo` | 本项目仓库 | 登录页底部的链接 |
 | `tls` | `null` | `{certFile, keyFile}`，启用 HTTPS |
 
 生成密码哈希：
@@ -201,7 +213,7 @@ node -e "import('./lib/auth.js').then(m=>console.log(m.hashPassword(process.argv
 - 监听地址/端口 —— 标注「重启后生效」
 - 活跃会话列表（来源 IP、浏览器、最后活动）：可以只退出本设备、踢掉其他设备，或一键退出所有设备
 
-这个页面渲染在 DSH 的 React 树里，因此直接继承宿主的明暗主题、滚动、焦点和移动端布局；窄屏下自动收成单列。
+这个页面渲染在 DSH 的 React 树里，因此直接继承宿主的明暗主题、滚动、焦点和移动端布局；窄屏下自动收成单列。现在已经没有浮动按钮，也没有独立的管理页地址——设置页是唯一的管理入口。
 
 **为什么 v3 把设置页做成原生的**：服务端仍然负责全部鉴权与转发，但页面变成了 `dsh.client` 前端包——一个手写的 React 模块（用户侧不需要打包，React 由宿主模块表提供），注册进 `settings.section` 槽。DSH 没有向 React 树注入 HTML 的官方途径，想要一等公民入口只有这一条路。代价是要声明 `engines.dsh`、且浏览器半在未来的宿主上可能被跳过；但服务端（鉴权、转发、闸门本身）从不依赖浏览器半。
 
@@ -214,6 +226,7 @@ node -e "import('./lib/auth.js').then(m=>console.log(m.hashPassword(process.argv
 | 登录后立刻弹回 | 客户端与主机时间偏差导致会话判定过期 |
 | 界面报 `randomUUID` | 把 `polyfill` 关掉了 |
 | 局域网能直连 DSH 端口 | DSH 绑的不是回环，见启动告警 |
+| 设置里找不到 DSH Web Guard | 宿主跳过了 bundle：版本低于 `0.2.2-rc.1`，或页面加载失败。查 `journalctl -u dsh-web \| grep dsh-web-guard`，并升级 DSH |
 
 日志统一带 `[dsh-web-guard]` 前缀，与 DSH 自身日志在同一个 journal 里。成功请求不记录（Web UI 会持续轮询），只记失败和慢请求。
 

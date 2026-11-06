@@ -6,7 +6,7 @@
 
 <p align="center">
   A password gate for the <a href="https://github.com/deepseek-ai/deepseek-harness">DeepSeek Harness</a> Web UI —
-  one plugin that fixes four deployment problems at once.
+  one plugin that fixes four deployment problems at once and adds a native settings page.
 </p>
 
 <p align="center"><a href="README.zh.md">中文说明</a></p>
@@ -17,6 +17,7 @@
   <img src="https://img.shields.io/node/v/@lvxianchao/dsh-web-guard" alt="Node.js >= 22.19">
   <img src="https://img.shields.io/badge/runtime_dependencies-0-brightgreen" alt="Zero runtime dependencies">
   <a href="https://github.com/deepseek-ai/deepseek-harness"><img src="https://img.shields.io/badge/DeepSeek_Harness-plugin-0e7490" alt="DeepSeek Harness plugin"></a>
+  <img src="https://img.shields.io/badge/DSH-%E2%89%A50.2.2--rc.1%20%3C0.3.0-0e7490" alt="DSH >= 0.2.2-rc.1">
 </p>
 
 | Problem | Vanilla behaviour | dsh-web-guard |
@@ -42,7 +43,7 @@ Requires **DeepSeek Harness `0.2.2-rc.1` or newer** (`engines.dsh: >=0.2.2-rc.1 
   <img src="https://raw.githubusercontent.com/lvxianchao/dsh-web-guard/main/docs/settings-en.png" width="92%" alt="Security settings page">
 </p>
 
-<p align="center"><sub>Login page &nbsp;·&nbsp; sign-out confirmation &nbsp;·&nbsp; native Security page in the harness settings (follows the harness light/dark theme)</sub></p>
+<p align="center"><sub>Login page &nbsp;·&nbsp; sign-out confirmation &nbsp;·&nbsp; native DSH Web Guard page in the harness settings (follows the harness light/dark theme)</sub></p>
 
 ## How it works
 
@@ -55,6 +56,8 @@ browser ──HTTP(S)──> dsh-web-guard :3081 ──> DSH listener (loopback)
 ```
 
 The harness fence accepts a loopback authority, so making every upstream request look like one removes the 403 entirely. Authentication happens **in the proxy**, not as a front-end overlay — a request without a session cookie never reaches the harness.
+
+A small browser half (`dsh.client`) adds the management page to the harness Settings panel; the gate itself is entirely server-side and keeps working if the browser half cannot load.
 
 ## Install
 
@@ -87,6 +90,8 @@ defaults):
 
 Note that a profile patch replaces the whole `config` object, so restate every
 key you care about.
+
+**Upgrading from v2:** the bottom-right shield button and `/__guard/admin` are gone; management lives in **Settings → DSH Web Guard**. Reinstall the package (or update to `3.0.0`) and restart DSH. The password hash, session cache and settings file keep their format, so nobody is signed out and your configuration carries over.
 
 > The harness itself must listen on loopback (its default). If it is bound to a LAN address, clients can bypass the gate by connecting there directly — the plugin detects this at startup and warns.
 
@@ -156,6 +161,12 @@ which is exactly where the harness settings UI writes it. Chinese and English ar
 supported. With no explicit preference the pages fall back to the browser's
 `Accept-Language`.
 
+## Theme
+
+The native settings page is part of the harness, so it simply follows the harness light/dark choice.
+
+The login and sign-out pages are standalone documents rendered before the harness page exists, so the server reads the harness choice from the profile patch (`- id: ui-theme` → `config.preference`, the row the Appearance control writes) and forces that palette before first paint. Precedence: `?theme=light|dark` → the harness preference → the operating system (`prefers-color-scheme`) when the preference is `system` or unset.
+
 ## Configuration
 
 | Key | Default | Meaning |
@@ -168,7 +179,8 @@ supported. With no explicit preference the pages fall back to the browser's
 | `maxAttempts` | `5` | Consecutive failures before a temporary lock |
 | `lockMinutes` | `5` | Lock duration |
 | `polyfill` | `true` | Inject the `crypto.randomUUID` shim |
-| `title` | `DeepSeek Harness` | Heading on the login page |
+| `title` | `DSH Web Guard` | Heading on the login page |
+| `repo` | the project repository | Link shown under the login form |
 | `tls` | `null` | `{certFile, keyFile}` to serve HTTPS |
 
 Generate a hash for the config:
@@ -207,7 +219,7 @@ The management surface is part of the harness itself: **Settings → DSH Web Gua
 - listen host/port — marked "takes effect after restart"
 - live session list (source IP, browser, last activity): sign out just this device, kick another device, or sign out everywhere
 
-The page renders inside the harness React tree, so it inherits the harness light/dark theme, scrolling, focus handling and mobile layout. On a narrow screen it collapses to a single column.
+The page renders inside the harness React tree, so it inherits the harness light/dark theme, scrolling, focus handling and mobile layout. On a narrow screen it collapses to a single column. There is no floating button and no separate admin URL any more — the settings page is the only management surface.
 
 **Why v3 makes the settings page native.** The server half still does all the gating, but the page is now a `dsh.client` bundle: a hand-written React module (no bundler for users, React comes from the host module table) registered into the `settings.section` slot. The harness exposes no HTML-injection route into its React tree, so a first-class entry requires exactly this. The trade-off is a declared `engines.dsh` range and a browser half that a future host may skip; the server half (authentication, forwarding, the gate itself) never depends on the browser half.
 
@@ -220,6 +232,7 @@ The page renders inside the harness React tree, so it inherits the harness light
 | Login succeeds then bounces back | Clock skew between the client and the host |
 | `randomUUID is not a function` | `polyfill` is disabled |
 | LAN can still reach the harness port | The harness is not bound to loopback — see the startup warning |
+| No **Settings → DSH Web Guard** entry | The host skipped the bundle: it is older than `0.2.2-rc.1`, or the page failed to load. Check `journalctl -u dsh-web | grep dsh-web-guard` and upgrade DSH |
 
 All log lines are prefixed `[dsh-web-guard]` and share the harness's journal stream. Successful requests are not logged (the Web UI polls constantly); only failures and slow requests are.
 
