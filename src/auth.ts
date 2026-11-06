@@ -7,7 +7,7 @@
  * - Sessions are hashed before they reach memory *and* the on-disk cache, so
  *   neither a heap dump nor the state file can mint a working cookie. The
  *   cache exists so a restart (upgrade, config change) does not sign everyone
- *   out; revocation still goes through the admin page, and a session that
+ *   out; revocation still goes through the settings page API, and a session that
  *   expired while the process was down is dropped on load.
  * - Every session carries its own expiry and last-seen stamp; the cookie
  *   lifetime is fixed at issue time, the server side slides on activity.
@@ -29,7 +29,7 @@ export interface SessionRow {
   ua: string
 }
 
-/** What the admin page and the JSON API may see about a session. */
+/** What the settings page API may see about a session. */
 export interface SessionSummary {
   id: string
   ip: string

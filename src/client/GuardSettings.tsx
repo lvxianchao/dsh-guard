@@ -740,7 +740,7 @@ export function GuardSettings({ t }: GuardSettingsProps): ReactElement {
               <p className="wg-empty">{translate('sessions.empty')}</p>
             ) : (
               <div className="wg-tableWrap">
-                <table className="wg-table">
+                <table className="wg-table" aria-label={translate('sessions.section')}>
                   <thead>
                     <tr>
                       <th scope="col">{translate('sessions.ip')}</th>
@@ -808,13 +808,8 @@ export function GuardSettings({ t }: GuardSettingsProps): ReactElement {
                   {translate('signout.goLogin')}
                 </a>
               ) : (
-                // Ordinary sign-out first (the common case), then the heavier
-                // "sign out everywhere" action that also drops every other device.
-                <a className="wg-btn" href="/logout">
-                  {translate('signout.self')}
-                </a>
-              )}
-              {signedOut ? null : (
+                // The heavier action leads (it also drops every other device);
+                // the ordinary per-device sign-out follows as the calmer option.
                 <button
                   type="button"
                   className="wg-btn wg-btnDanger"
@@ -825,6 +820,11 @@ export function GuardSettings({ t }: GuardSettingsProps): ReactElement {
                 >
                   {signOutBusy ? translate('common.saving') : translate('signout.action')}
                 </button>
+              )}
+              {signedOut ? null : (
+                <a className="wg-btn" href="/logout">
+                  {translate('signout.self')}
+                </a>
               )}
             </div>
           </section>

@@ -209,9 +209,7 @@ The management surface is part of the harness itself: **Settings → DSH Web Gua
 
 The page renders inside the harness React tree, so it inherits the harness light/dark theme, scrolling, focus handling and mobile layout. On a narrow screen it collapses to a single column.
 
-A shield button in the bottom-right corner survives only as a **fallback**: it appears when the client bundle is not active (an older or incompatible host) and opens the same settings at `/__guard/admin`. That URL stays reachable directly and follows the operating system theme (`?theme=light|dark` forces one). Anonymous visitors are redirected to the login page with no `next` echo, and the login page does not advertise the settings path.
-
-**Why v3 makes the settings page native.** The server half still does all the gating, but the page is now a `dsh.client` bundle: a hand-written React module (no bundler for users, React comes from the host module table) registered into the `settings.section` slot. The harness exposes no HTML-injection route into its React tree, so a first-class entry requires exactly this. The trade-off is a declared `engines.dsh` range and a browser half that a future host may skip; the injected fallback keeps the plugin usable there, and the server half never depends on the browser half.
+**Why v3 makes the settings page native.** The server half still does all the gating, but the page is now a `dsh.client` bundle: a hand-written React module (no bundler for users, React comes from the host module table) registered into the `settings.section` slot. The harness exposes no HTML-injection route into its React tree, so a first-class entry requires exactly this. The trade-off is a declared `engines.dsh` range and a browser half that a future host may skip; the server half (authentication, forwarding, the gate itself) never depends on the browser half.
 
 ## Troubleshooting
 

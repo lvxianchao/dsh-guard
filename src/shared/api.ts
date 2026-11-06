@@ -25,9 +25,9 @@ export interface GuardSettingsView {
   lockMinutes: number
   listenHost: string
   listenPort: number
-  /** Product label shown on the login/fallback page. */
+  /** Product label shown on the login page. */
   title: string
-  /** Repository link shown on the login/fallback page. */
+  /** Repository link shown on the login page. */
   repo: string
 }
 

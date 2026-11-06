@@ -1,8 +1,7 @@
 /**
  * Browser half of dsh-web-guard: registers the native "Security" settings page
  * and its navigation icon, publishes the `webGuard` dictionaries, installs the
- * page stylesheet, and removes the pre-v3 floating shield once the native page
- * is live.
+ * page stylesheet.
  *
  * The build (`scripts/build.mjs`) wraps the compiled CJS body in
  * `window.__ModuleLoader__.load({ id, factory })`; this file therefore only
@@ -13,7 +12,7 @@
 import type { ReactElement } from 'react'
 import { GuardSettings } from './GuardSettings'
 import { en, zh } from './locales'
-import { installGuardStyles, removeFallbackEntry } from './styles'
+import { installGuardStyles } from './styles'
 import type { ClientContext, SettingsSectionIconProps } from './types'
 
 /** Dictionary namespace owned by this plugin. */
@@ -75,7 +74,7 @@ export const inject: string[] = ['slots', 'locale']
 
 /**
  * Client plugin body: dictionaries, settings section, icon, styles, and
- * fallback-entry cleanup. Everything runs inside `ctx.effect` so unloading the
+ * and styles. Everything runs inside `ctx.effect` so unloading the
  * plugin removes every contribution; a host that cannot activate the bundle
  * never sees a half-registered page.
  * @param ctx - browser client context carrying the slot and locale services.
@@ -121,15 +120,10 @@ export function apply(ctx: ClientContext): void {
       'web-guard: settings icon',
     )
 
-    // Styles and the fallback-entry removal are one activation step: the FAB
-    // only disappears once the native page exists.
-    ctx.effect(() => {
-      removeFallbackEntry()
-      return installGuardStyles()
-    }, 'web-guard: styles and fallback cleanup')
+    ctx.effect(() => installGuardStyles(), 'web-guard: styles')
   } catch (error) {
-    // A failed activation must leave the host page usable: the server-injected
-    // fallback entry still points at the standalone admin page.
+    // A failed activation must leave the host page usable: authentication and
+    // forwarding are server-side and stay untouched by a broken browser half.
     console.warn('[dsh-web-guard] client module failed to activate:', error)
   }
 }

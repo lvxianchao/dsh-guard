@@ -96,8 +96,7 @@ Release: bump `package.json` + add a CHANGELOG entry, `npm run build`, merge `de
 | `src/proxy.ts` | upstream forwarding and the `Host` / `Origin` loopback rewrite |
 | `src/auth.ts` | scrypt password hashing and the session table (SHA-256 digests, persisted cache) |
 | `src/page.ts`, `src/i18n.ts` | login / sign-out pages and en+zh strings (themed) |
-| `src/admin.ts` | fallback admin page (themed; used when the client bundle is absent) |
-| `src/inject.ts`, `src/polyfill.ts` | fallback shield/overlay injection, `/__guard/session` probe, secure-context polyfill |
+| `src/inject.ts`, `src/polyfill.ts` | session watchdog (`/__guard/session` probe) and the secure-context polyfill injected into the index |
 | `src/shared/api.ts` | JSON contract shared by the server and the settings page |
 | `src/shared/theme.ts` | light/dark palettes for the standalone pages |
 | `src/client/module.tsx` | `dsh.client` entry: registers the native settings section, icon, dictionaries, styles |

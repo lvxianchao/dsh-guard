@@ -13,11 +13,12 @@ Internal design note, not shipped (the `files` list has no `docs/` entry besides
    page (id `web-guard`, DSH Settings → DSH Web Guard) and its `settings.section.icon`.
    It renders in the harness React tree with `--dsw-alias-*` tokens, so theme,
    scrolling, keyboard handling and mobile layout come from the host.
-3. The old floating shield + iframe stays only as a **fallback**: the client
-   module removes it on activation. `/__guard/admin` and `/login` remain
-   reachable directly (bookmark, older host, client bundle failed to load).
-4. Standalone pages (login, signed out, fallback admin) get light/dark palettes
-   from `src/shared/theme.ts`, following `prefers-color-scheme`, with
+3. The old floating shield, its iframe overlay and the server-rendered
+   `/__guard/admin` page are removed. The native settings page is the only
+   management surface; `/login` remains a standalone document (there is no
+   authenticated UI before the harness boots).
+4. Standalone pages (login, signed out) get light/dark palettes from
+   `src/shared/theme.ts`, following `prefers-color-scheme`, with
    `?theme=light|dark` as an override.
 5. `engines.dsh` is declared so an incompatible host skips the whole bundle
    (fail-closed: port 3081 never listens) instead of booting a half-working UI.
@@ -30,8 +31,7 @@ src/proxy.ts        upstream forwarding, Host/Origin rewrite           (server)
 src/auth.ts         scrypt hash + session table                        (server)
 src/i18n.ts         en/zh strings for server-rendered pages            (server)
 src/page.ts         login + signed-out documents                       (server)
-src/admin.ts        fallback admin document (themed)                   (server)
-src/inject.ts       fallback FAB + overlay injection                   (server)
+src/inject.ts       session watchdog + polyfill index transform         (server)
 src/polyfill.ts     crypto.randomUUID shim                             (server)
 src/shared/api.ts   JSON API types                      (contract, read-only)
 src/shared/theme.ts standalone page palettes            (contract, read-only)
@@ -98,9 +98,8 @@ Every response is JSON with `ok`; errors use the `GuardErrorCode` union in
 | `kick` | POST | `KickRequest` | `GuardOkResponse` (`kick_missing` when the id is unknown) |
 | `logout-all` | POST | — | `GuardOkResponse` + cleared session cookie |
 
-Server-rendered form routes keep working unchanged (`POST /__guard/admin`,
-`/__guard/kill`, `/__guard/logout-all`) for the fallback page; the JSON routes
-share the same mutators so behaviour cannot drift.
+There is no server-rendered management page: the JSON routes are the only
+management transport. The login form routes (`POST /login`) stay as they are.
 
 ## Client behaviour
 
@@ -127,5 +126,5 @@ npm run typecheck && npm run build
 npm test                       # against a running gate, see AGENTS.md
 # shadow instance: dsh --profile web --patch ./dev.local.yml --host 127.0.0.1 --port 3099 --no-open
 # headless Chrome (mobile 390×844 + desktop): settings entry present, no FAB,
-# page follows light/dark, login page follows prefers-color-scheme, /__guard/admin still themed
+# page follows light/dark, login page follows prefers-color-scheme, /__guard/admin is 404
 ```

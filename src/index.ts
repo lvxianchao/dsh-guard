@@ -23,7 +23,6 @@ import { createListener, forward, forwardUpgrade, upstreamAgent } from './proxy.
 import { hashPassword, verifyPassword, SessionStore } from './auth.js'
 import type { SessionRow } from './auth.js'
 import { loginPage, logoutPage } from './page.js'
-import { adminPage } from './admin.js'
 import { injectUi } from './inject.js'
 import { createLocaleReader, normalize, t } from './i18n.js'
 import type { Locale } from './i18n.js'
@@ -90,22 +89,13 @@ interface AuthedSession {
   row: SessionRow
 }
 
-interface RenderAdminOptions {
-  status?: number
-  notice?: string
-  error?: string
-  restartNote?: string
-  locale?: Locale
-  search?: string
-}
-
 interface UpdateSettingsResult {
   settings: GuardSettingsView
   restartRequired: boolean
 }
 
 /**
- * Guard state (password hash + admin-page settings) belongs to one profile:
+ * Guard state (password hash + settings) belongs to one profile:
  * several profiles can run this plugin and must not share a port or a password.
  * Reading prefers the profile-local file, then the legacy
  * $DSH_HOME/dsh-web-guard.json written by earlier versions; writes always use the
@@ -225,7 +215,7 @@ function isApiPath(path: string): boolean {
 }
 
 export function apply(ctx: HostContext, config: Partial<GuardConfig> = {}): { stop: () => void } {
-  // Precedence: file-managed settings (written by the admin page) > plugin
+  // Precedence: file-managed settings (written by the settings page) > plugin
   // config in cordis.patch.yml > built-in defaults.
   const patchPath = ctx.profileContext?.patchPath
     ?? (ctx.get?.('profileContext') as ProfileContext | undefined)?.patchPath
@@ -285,8 +275,8 @@ export function apply(ctx: HostContext, config: Partial<GuardConfig> = {}): { st
   }
   const secureCookie = Boolean(cfg.tls?.certFile && cfg.tls?.keyFile)
 
-  // The listener binds once at boot. Settings surfaces (native page, fallback
-  // admin page, JSON API) report the *configured* values and flag a pending
+  // The listener binds once at boot. Settings surfaces (native page, JSON API)
+  // settings page, JSON API) report the *configured* values and flag a pending
   // restart when they disagree with what is actually listening, so saving a new
   // port shows up immediately instead of appearing to be lost.
   const runningListener = { host: String(cfg.listenHost), port: Number(cfg.listenPort) }
@@ -337,12 +327,6 @@ export function apply(ctx: HostContext, config: Partial<GuardConfig> = {}): { st
     const attrs = [`${COOKIE}=`, 'Path=/', 'HttpOnly', 'SameSite=Lax', 'Max-Age=0']
     if (secureCookie) attrs.push('Secure')
     res.setHeader('set-cookie', attrs.join('; '))
-  }
-
-  const clampInt = (value: unknown, min: number, max: number, fallback: number): number => {
-    const n = Number.parseInt(String(value ?? ''), 10)
-    if (!Number.isFinite(n) || n < min || n > max) return fallback
-    return n
   }
 
   function currentSettings(): GuardSettingsView {
@@ -407,21 +391,13 @@ export function apply(ctx: HostContext, config: Partial<GuardConfig> = {}): { st
   /** Revoke one session; false when the id is unknown or already gone. */
   function kickSession(id: string): boolean {
     const removed = sessions.removeById(id)
-    log(`session revoked from the admin page: ${id.slice(0, 8)}… ${removed ? 'ok' : 'not found'}`)
+    log(`session revoked from the settings page: ${id.slice(0, 8)}… ${removed ? 'ok' : 'not found'}`)
     return removed
   }
 
   function revokeAllSessions(): void {
     sessions.revokeAll()
-    log('all sessions revoked from the admin page')
-  }
-
-  function renderAdmin(res: ServerResponse, session: AuthedSession, options: RenderAdminOptions = {}): void {
-    const { status = 200, notice = '', error = '', locale = 'zh', search = '' } = options
-    const restartNote = options.restartNote ?? (listenerRestartRequired() ? t(locale).restartNote : '')
-    const currentId = sessions.idOf(session.token)
-    const rows: SessionView[] = sessions.list().map((row) => ({ ...row, current: row.id === currentId }))
-    html(res, status, adminPage({ settings: currentSettings(), sessions: rows, notice, error, restartNote, locale, search }))
+    log('all sessions revoked from the settings page')
   }
 
   // ── request handling: form routes ─────────────────────────────────────────
@@ -455,68 +431,6 @@ export function apply(ctx: HostContext, config: Partial<GuardConfig> = {}): { st
     setSessionCookie(res, token)
     log(`login ok from ${ip}`)
     redirect(res, safeNext)
-  }
-
-  /** Server-rendered management routes (fallback admin page). */
-  async function handleGuard(req: IncomingMessage, res: ServerResponse, path: string, session: AuthedSession, locale: Locale, search: string): Promise<void> {
-    if (path === '/__guard/admin') {
-      if (req.method === 'GET') return renderAdmin(res, session, { locale, search })
-      if (req.method !== 'POST') return json(res, 405, { error: 'method_not_allowed' })
-      if (!originAllowed(req)) return renderAdmin(res, session, { status: 403, error: t(locale).errOrigin, locale, search })
-
-      const form = new URLSearchParams(await readBody(req).catch(() => ''))
-      const problems: string[] = []
-
-      // Password change: any of the three fields present means "intent to change".
-      const cur = form.get('current') ?? ''
-      const nextPassword = form.get('next') ?? ''
-      const confirm = form.get('confirm') ?? ''
-      let passwordChanged = false
-      if (cur || nextPassword || confirm) {
-        const code = changePassword(cur, nextPassword, confirm)
-        if (code === 'wrong_current') problems.push(t(locale).errCurrent)
-        else if (code === 'too_short') problems.push(t(locale).errShort)
-        else if (code === 'mismatch') problems.push(t(locale).errMismatch)
-        else passwordChanged = true
-      }
-
-      const input: UpdateSettingsRequest = {
-        sessionDays: clampInt(form.get('sessionDays'), 0, 365, Number(cfg.sessionDays)),
-        maxAttempts: clampInt(form.get('maxAttempts'), 1, 50, Number(cfg.maxAttempts)),
-        lockMinutes: clampInt(form.get('lockMinutes'), 1, 1440, Number(cfg.lockMinutes)),
-        listenHost: (form.get('listenHost') ?? '').trim().slice(0, 64) || String(cfg.listenHost),
-        listenPort: clampInt(form.get('listenPort'), 1, 65535, Number(cfg.listenPort)),
-      }
-
-      if (problems.length > 0) {
-        return renderAdmin(res, session, { status: 400, error: problems.join(locale === 'zh' ? '；' : '; '), locale, search })
-      }
-
-      const result = updateSettings(input)
-      return renderAdmin(res, session, {
-        notice: passwordChanged ? t(locale).savedPassword : t(locale).saved,
-        restartNote: result.restartRequired ? t(locale).restartNote : '',
-        locale,
-        search,
-      })
-    }
-
-    if (path === '/__guard/logout-all') {
-      if (!originAllowed(req)) return json(res, 403, { error: 'forbidden' })
-      revokeAllSessions()
-      clearSessionCookie(res)
-      return redirect(res, '/login')
-    }
-
-    if (path === '/__guard/kill') {
-      if (!originAllowed(req)) return json(res, 403, { error: 'forbidden' })
-      const form = new URLSearchParams(await readBody(req).catch(() => ''))
-      const id = form.get('id') ?? ''
-      const removed = kickSession(id)
-      return renderAdmin(res, session, { notice: removed ? t(locale).kicked : t(locale).kickMissing, locale, search })
-    }
-
-    return json(res, 404, { error: 'not_found' })
   }
 
   // ── JSON API (native settings page) ───────────────────────────────────────
@@ -691,7 +605,9 @@ export function apply(ctx: HostContext, config: Partial<GuardConfig> = {}): { st
     }
 
     if (isApiPath(path)) return handleApi(req, res, path, session)
-    if (path.startsWith('/__guard/')) return handleGuard(req, res, path, session, locale, search)
+    // No server-rendered management page: the native settings page talks to
+    // the JSON API, and anything else under the guard namespace is unknown.
+    if (path.startsWith('/__guard/')) return apiError(res, 404, 'not_found')
 
     let cookie: string
     try {
@@ -717,9 +633,8 @@ export function apply(ctx: HostContext, config: Partial<GuardConfig> = {}): { st
   }
 
   // ── wiring ────────────────────────────────────────────────────────────────
-  // The fallback entry is injected unconditionally: disabling the plain-HTTP
-  // polyfill must not also remove the only management entry on hosts without
-  // the native settings bundle.
+  // The polyfill and the session watchdog are injected unconditionally: the
+  // polyfill switch must not also disable the dead-session redirect.
   ctx.effect(
     () => ctx.webServer.tapIndex((html: string) => injectUi(html, { polyfill: cfg.polyfill })),
     'dsh-web-guard: index transform',

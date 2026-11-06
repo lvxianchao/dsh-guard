@@ -104,6 +104,6 @@ declare global {
 export interface GuardClientModule {
   /** Services that must exist before `apply` is called. */
   inject: string[]
-  /** Install dictionaries, slot contributions, styles, and fallback cleanup. */
+  /** Install dictionaries, slot contributions, and styles. */
   apply(ctx: ClientContext): void
 }

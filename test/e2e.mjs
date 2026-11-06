@@ -133,15 +133,13 @@ console.log(`dsh-guard e2e against ${BASE}\n`)
   check('correct password issues a session', res.status === 302 && main.cookie.startsWith('dsh_guard='), `${res.status}`)
 }
 
-// 7. the authenticated index is the harness UI, with the polyfill injected
+// 7. the authenticated index is the harness UI, with only the shim + watchdog
 {
   const res = await request('/')
   check('authenticated / serves the UI', res.status === 200 && res.text.includes('<html'), `${res.status}`)
   check('polyfill injected into index', res.text.includes('data-dsh-web-guard-polyfill'))
-  check('fallback FAB injected into index', res.text.includes('id="dsh-web-guard-fab"'))
-  check('fallback FAB uses host theme tokens', res.text.includes('--dsw-alias-bg-layer-2') && res.text.includes('--dsw-alias-bg-mask-3'))
-  check('fallback overlay locks overscroll', res.text.includes('overscroll-behavior:contain'))
-  check('fallback overlay sizes with dvh', res.text.includes('height:100dvh'))
+  check('session watchdog injected into index', res.text.includes('data-dsh-web-guard-watchdog'))
+  check('no injected fallback entry', !res.text.includes('id="dsh-web-guard-fab"') && !res.text.includes('data-dsh-web-guard-overlay'))
 }
 
 // 8. an /api call is forwarded, not fenced off
@@ -228,12 +226,15 @@ let baselineSettings = null
   check('API password mismatch', mismatch.status === 400 && mismatch.json?.error === 'mismatch', `${mismatch.status} ${mismatch.json?.error}`)
 }
 
-// 14. the fallback admin page is themed
+// 14. the server-rendered fallback page is gone: management is the native page
 {
-  const res = await request('/__guard/admin?theme=dark')
-  check('admin page renders', res.status === 200 && res.text.includes('action="/__guard/admin"'), `${res.status}`)
-  check('admin page is themed', res.text.includes(themeMarker('dark')) && res.text.includes('--gws-bg'))
-  check('admin page has no hardcoded dark canvas', !hasHardcodedDark(res.text))
+  const res = await request('/__guard/admin')
+  let adminJson = null
+  try { adminJson = JSON.parse(res.text) } catch { adminJson = null }
+  check('no server-rendered management page', res.status === 404 && adminJson?.error === 'not_found', `${res.status} ${adminJson?.error}`)
+  const anon = await request('/__guard/admin', { auth: false, jar: { cookie: '' } })
+  const location = anon.headers.get('location') ?? ''
+  check('anonymous guard paths still redirect to login', anon.status === 302 && location.includes('/login'), `${anon.status} ${location}`)
 }
 
 // 15. kick: a second browser signs in, the first one revokes it

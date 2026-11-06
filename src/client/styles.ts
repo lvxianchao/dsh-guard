@@ -1,5 +1,5 @@
 /**
- * Styles for the native settings page and fallback-entry cleanup.
+ * Styles for the native settings page.
  *
  * The page renders inside the harness React tree, so every colour comes from
  * the host's `--dsw-alias-*` tokens (with literal fallbacks for an older host).
@@ -81,22 +81,4 @@ export function installGuardStyles(): () => void {
   tag.textContent = GUARD_CSS
   document.head.appendChild(tag)
   return () => tag.remove()
-}
-
-/**
- * Remove the pre-v3 floating shield and its overlay now that the native
- * settings page is registered. When this bundle fails to load the server-side
- * injection stays in place and remains the entry point, so removal here is
- * deliberate one-way cleanup, never a hidden dependency.
- */
-export function removeFallbackEntry(): void {
-  if (typeof document === 'undefined' || document.body === null) return
-  const overlay = document.getElementById('dsh-web-guard-overlay')
-  if (overlay !== null) {
-    overlay.remove()
-    // The fallback overlay locked page scrolling while open; release it.
-    if (document.body.style.overflow === 'hidden') document.body.style.overflow = ''
-  }
-  document.getElementById('dsh-web-guard-fab')?.remove()
-  for (const node of document.querySelectorAll('style[data-dsh-web-guard-fab-style]')) node.remove()
 }
