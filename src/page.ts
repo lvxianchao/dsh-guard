@@ -23,6 +23,8 @@ export interface LoginPageOptions {
   locale?: Locale
   /** Query string used for the `?theme=` override. */
   search?: string
+  /** Harness `ui-theme` preference (`light|dark|system`), read from the profile patch. */
+  themePreference?: string
 }
 
 /** Render the login document (light/dark palette from shared/theme). */
@@ -34,6 +36,7 @@ export function loginPage({
   repo = 'https://github.com/lvxianchao/dsh-web-guard',
   locale = 'zh',
   search = '',
+  themePreference = '',
 }: LoginPageOptions = {}): string {
   const L = t(locale)
   const nextField = next && next.startsWith('/') && !next.startsWith('//') ? `<input type="hidden" name="next" value="${esc(next)}">` : ''
@@ -53,7 +56,7 @@ export function loginPage({
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <meta name="color-scheme" content="light dark">
-${themeBootScript(search)}
+${themeBootScript(search, themePreference)}
 <title>${esc(title)} · ${locale === 'zh' ? '登录' : 'Sign in'}</title>
 <style>
 ${themeCss()}
@@ -120,15 +123,17 @@ export interface LogoutPageOptions {
   locale?: Locale
   /** Query string used for the `?theme=` override. */
   search?: string
+  /** Harness `ui-theme` preference (`light|dark|system`), read from the profile patch. */
+  themePreference?: string
 }
 
 /** Minimal logout confirmation (no JS needed). */
-export function logoutPage({ title = 'DSH Web Guard', locale = 'zh', search = '' }: LogoutPageOptions = {}): string {
+export function logoutPage({ title = 'DSH Web Guard', locale = 'zh', search = '', themePreference = '' }: LogoutPageOptions = {}): string {
   const L = t(locale)
   return `<!doctype html><html lang="${locale === 'zh' ? 'zh-CN' : 'en'}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-${themeBootScript(search)}
+${themeBootScript(search, themePreference)}
 <title>${esc(title)} · ${esc(L.loggedOut)}</title>
 <style>${themeCss()}
 *{box-sizing:border-box}html{background:var(--gws-bg);height:100%}

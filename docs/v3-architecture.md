@@ -18,8 +18,10 @@ Internal design note, not shipped (the `files` list has no `docs/` entry besides
    management surface; `/login` remains a standalone document (there is no
    authenticated UI before the harness boots).
 4. Standalone pages (login, signed out) get light/dark palettes from
-   `src/shared/theme.ts`, following `prefers-color-scheme`, with
-   `?theme=light|dark` as an override.
+   `src/shared/theme.ts`. The server reads the harness `ui-theme` preference out
+   of the profile patch (`preferences.ts`) and forces that palette; `system` or a
+   missing row falls back to `prefers-color-scheme`; `?theme=light|dark` overrides
+   both.
 5. `engines.dsh` is declared so an incompatible host skips the whole bundle
    (fail-closed: port 3081 never listens) instead of booting a half-working UI.
 
@@ -126,5 +128,5 @@ npm run typecheck && npm run build
 npm test                       # against a running gate, see AGENTS.md
 # shadow instance: dsh --profile web --patch ./dev.local.yml --host 127.0.0.1 --port 3099 --no-open
 # headless Chrome (mobile 390×844 + desktop): settings entry present, no FAB,
-# page follows light/dark, login page follows prefers-color-scheme, /__guard/admin is 404
+# page follows light/dark, login page follows the harness ui-theme preference (system fallback), /__guard/admin is 404
 ```

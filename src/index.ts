@@ -25,6 +25,7 @@ import type { SessionRow } from './auth.js'
 import { loginPage, logoutPage } from './page.js'
 import { injectUi } from './inject.js'
 import { createLocaleReader, normalize, t } from './i18n.js'
+import { createPreferenceReader } from './preferences.js'
 import type { Locale } from './i18n.js'
 import { GUARD_API } from './shared/api.js'
 import type {
@@ -260,6 +261,12 @@ export function apply(ctx: HostContext, config: Partial<GuardConfig> = {}): { st
   // Locale follows the harness: its language picker writes `preference` into
   // the profile patch file. Event-driven: no filesystem work on the request path.
   const localeReader = createLocaleReader(patchPath)
+  // The Appearance control writes `- id: ui-theme` → `config.preference` into
+  // the same patch file. Reading it lets the login/sign-out documents follow
+  // the operator's harness choice before the harness page exists; `system` and
+  // a missing row leave them on `prefers-color-scheme`.
+  const themeReader = createPreferenceReader(patchPath, 'ui-theme')
+  const harnessTheme = (): string => themeReader.get()
   function localeFor(req: IncomingMessage | undefined): Locale {
     const explicit = localeReader.get()
     if (explicit) return explicit
@@ -404,10 +411,10 @@ export function apply(ctx: HostContext, config: Partial<GuardConfig> = {}): { st
   async function handleLogin(req: IncomingMessage, res: ServerResponse, locale: Locale, search: string): Promise<void> {
     const ip = clientIp(req)
     if (sessions.isLocked(ip)) {
-      return html(res, 429, loginPage({ title: cfg.title, locked: true, repo: cfg.repo, locale, search }))
+      return html(res, 429, loginPage({ title: cfg.title, locked: true, repo: cfg.repo, locale, search, themePreference: harnessTheme() }))
     }
     if (!originAllowed(req)) {
-      return html(res, 403, loginPage({ title: cfg.title, error: t(locale).errOrigin, repo: cfg.repo, locale, search }))
+      return html(res, 403, loginPage({ title: cfg.title, error: t(locale).errOrigin, repo: cfg.repo, locale, search, themePreference: harnessTheme() }))
     }
     const body = await readBody(req).catch(() => '')
     const form = new URLSearchParams(body)
@@ -424,6 +431,7 @@ export function apply(ctx: HostContext, config: Partial<GuardConfig> = {}): { st
         repo: cfg.repo,
         locale,
         search,
+        themePreference: harnessTheme(),
       }))
     }
     sessions.clearFailures(ip)
@@ -582,7 +590,7 @@ export function apply(ctx: HostContext, config: Partial<GuardConfig> = {}): { st
 
     if (path === '/login' && req.method === 'GET') {
       if (sessionOf(req)) return redirect(res, '/')
-      return html(res, 200, loginPage({ title: cfg.title, next: url.searchParams.get('next') ?? '/', repo: cfg.repo, locale, search }))
+      return html(res, 200, loginPage({ title: cfg.title, next: url.searchParams.get('next') ?? '/', repo: cfg.repo, locale, search, themePreference: harnessTheme() }))
     }
     if (path === '/login' && req.method === 'POST') return handleLogin(req, res, locale, search)
 
@@ -590,7 +598,7 @@ export function apply(ctx: HostContext, config: Partial<GuardConfig> = {}): { st
       const s = sessionOf(req)
       if (s) sessions.revoke(s.token)
       clearSessionCookie(res)
-      return html(res, 200, logoutPage({ title: cfg.title, locale, search }))
+      return html(res, 200, logoutPage({ title: cfg.title, locale, search, themePreference: harnessTheme() }))
     }
 
     const session = sessionOf(req)
@@ -664,6 +672,7 @@ export function apply(ctx: HostContext, config: Partial<GuardConfig> = {}): { st
     return () => {
       sessions.dispose()
       localeReader.dispose()
+      themeReader.dispose()
       listener.close()
     }
   }, 'dsh-web-guard: listener')

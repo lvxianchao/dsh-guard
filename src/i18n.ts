@@ -9,10 +9,7 @@
  * When no explicit preference exists, the harness falls back to the browser
  * language — and so do we, via Accept-Language.
  */
-import { readFileSync, statSync, watch } from 'node:fs'
-import type { FSWatcher } from 'node:fs'
-import { basename, dirname } from 'node:path'
-import type { IncomingMessage } from 'node:http'
+import { createPreferenceReader, readPreference } from './preferences.js'
 
 export type Locale = 'zh' | 'en'
 
@@ -21,37 +18,10 @@ const SUPPORTED: readonly string[] = ['zh', 'en']
 /**
  * Read the explicit locale preference from a profile patch file.
  * Returns a supported locale id, or '' when unset/unreadable.
+ * @param patchPath - profile patch file path.
  */
-export function readPreference(patchPath: string): Locale | '' {
-  if (!patchPath) return ''
-  let text: string
-  try {
-    text = readFileSync(patchPath, 'utf8')
-  } catch {
-    return ''
-  }
-  const lines = text.split('\n')
-  let inLocaleRow = false
-  let rowIndent = 0
-  for (const line of lines) {
-    const trimmed = line.trim()
-    if (!trimmed || trimmed.startsWith('#')) continue
-    const indent = line.length - line.trimStart().length
-
-    // A new top-level-ish row ends the section we were scanning.
-    if (inLocaleRow && /^- /.test(trimmed) && indent <= rowIndent) break
-
-    if (/^-\s+id:\s*['"]?locale['"]?\s*$/.test(trimmed)) {
-      inLocaleRow = true
-      rowIndent = indent
-      continue
-    }
-    if (inLocaleRow) {
-      const m = trimmed.match(/^preference:\s*['"]?([A-Za-z-]+)['"]?/)
-      if (m) return normalize(m[1])
-    }
-  }
-  return ''
+export function readLocalePreference(patchPath: string): Locale | '' {
+  return normalize(readPreference(patchPath, 'locale'))
 }
 
 /** Map an arbitrary tag (`zh-CN`, `en-US`) onto a supported id. */
@@ -111,65 +81,14 @@ export interface LocaleReader {
 /**
  * Keep the patch file's locale preference in memory.
  *
- * Reading the file per request would block the harness event loop (this plugin
- * shares its process), and a fixed poll interval is a guess in both directions.
- * Instead: read once at startup, then re-read only when the directory reports a
- * change — the harness writes atomically via rename, so watching the directory
- * is what actually catches the replacement. If the platform has no usable
- * watcher, fall back to a slow mtime check on a timer.
+ * The watch/poll mechanics live in `preferences.ts`; this wrapper only maps the
+ * raw value onto a supported locale id.
+ * @param patchPath - profile patch file path.
  */
 export function createLocaleReader(patchPath: string): LocaleReader {
-  let value = readPreference(patchPath)
-  let watcher: FSWatcher | undefined
-  let poller: NodeJS.Timeout | undefined
-  let mtime = 0
-  let debounce: NodeJS.Timeout | undefined
-
-  const stamp = (): number => {
-    try {
-      return statSync(patchPath).mtimeMs
-    } catch {
-      return 0
-    }
-  }
-  mtime = stamp()
-
-  const refresh = (): void => {
-    const next = stamp()
-    if (next === mtime) return
-    mtime = next
-    value = readPreference(patchPath)
-  }
-  const schedule = (): void => {
-    if (debounce) clearTimeout(debounce)
-    debounce = setTimeout(refresh, 40)
-    debounce.unref()
-  }
-
-  try {
-    watcher = watch(dirname(patchPath), { persistent: false }, (_event, filename) => {
-      if (!filename || String(filename) === basename(patchPath)) schedule()
-    })
-    watcher.on('error', () => {
-      watcher?.close()
-      watcher = undefined
-    })
-  } catch {
-    watcher = undefined
-  }
-
-  if (!watcher) {
-    // No usable watcher: an inexpensive mtime check every 30s is the safety net.
-    poller = setInterval(refresh, 30_000)
-    poller.unref()
-  }
-
+  const reader = createPreferenceReader(patchPath, 'locale')
   return {
-    get: () => value,
-    dispose: () => {
-      if (debounce) clearTimeout(debounce)
-      if (poller) clearInterval(poller)
-      watcher?.close()
-    },
+    get: () => normalize(reader.get()),
+    dispose: () => reader.dispose(),
   }
 }

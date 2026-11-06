@@ -2,8 +2,9 @@
  * Palette for the pages this plugin renders itself: the login form and the
  * signed-out page. Those are standalone documents before
  * the harness boots, so they cannot use the harness `--dsw-alias-*` tokens;
- * they carry their own two palettes and follow the operating system, with an
- * explicit `?theme=light|dark` override for screenshots and kiosks.
+ * they carry their own two palettes. The server half forces the harness
+ * `ui-theme` preference when it is `light`/`dark`; `system`/unset follows the
+ * operating system, and `?theme=light|dark` overrides both (screenshots, kiosks).
  *
  * The native settings page does NOT use this file: it renders inside the
  * harness React tree and inherits the live `--dsw-alias-*` tokens directly.
@@ -122,11 +123,16 @@ export function themeFromQuery(search: string | null | undefined): ThemeName | u
 
 /**
  * Head script for the forced-theme case. It runs before first paint so a
- * `?theme=dark` screenshot does not flash light first; without the query it
- * leaves the document alone and the media query decides.
+ * `?theme=dark` screenshot does not flash light first.
+ *
+ * Precedence: explicit `?theme=` query, then the harness preference read from
+ * the profile patch (`ui-theme`), then nothing — nothing means the document
+ * follows `prefers-color-scheme`, which is the system fallback.
+ * @param search - request query string.
+ * @param harnessPreference - raw `light|dark|system` value from the profile.
  */
-export function themeBootScript(search: string | null | undefined): string {
-  const forced = themeFromQuery(search)
+export function themeBootScript(search: string | null | undefined, harnessPreference?: string): string {
+  const forced = themeFromQuery(search) ?? (harnessPreference === 'light' || harnessPreference === 'dark' ? harnessPreference : undefined)
   if (!forced) return ''
   return `<script>document.documentElement.setAttribute('data-theme',${JSON.stringify(forced)})</script>`
 }

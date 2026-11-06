@@ -12,7 +12,7 @@
 
 - Native settings page in the harness: password change, session lifetime, lockout threshold/duration, listener address and port, live session list with per-device sign out (current device) and revoke (other devices), sign out everywhere.
 - JSON API behind the native page (`/__guard/api/*`) sharing the same mutators as the form routes.
-- Light/dark palettes for the login and sign-out pages: they follow the operating system by default and accept `?theme=light|dark` for an explicit override.
+- Light/dark palettes for the login and sign-out pages: they follow the harness theme preference (the `ui-theme` row the Appearance control writes into the profile patch), fall back to the operating system when that preference is `system`/unset, and accept `?theme=light|dark` for an explicit override.
 - Removed the injected fallback shield/overlay and the server-rendered `/__guard/admin` page: the native settings page is the only management surface, so there is nothing left to cover the composer or clip on mobile.
 
 ### Changed

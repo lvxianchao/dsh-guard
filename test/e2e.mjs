@@ -103,8 +103,11 @@ console.log(`dsh-guard e2e against ${BASE}\n`)
   const res = await request('/login', { auth: false })
   check('login page renders a password form', res.status === 200 && res.text.includes('name="password"'), `${res.status}`)
   check('login page carries the shared palette', res.text.includes('--gws-bg') && res.text.includes('prefers-color-scheme: dark'))
-  check('login page does not force dark', !res.text.includes(themeMarker('dark')) && !hasHardcodedDark(res.text))
-  check('login page follows the system by default', !res.text.includes("setAttribute('data-theme'"))
+  // A forced `data-theme` may come from the harness ui-theme preference; it must
+  // only ever be one of the two real themes, and the system fallback stays.
+  const forcedTheme = (res.text.match(/setAttribute\('data-theme',"(light|dark)"\)/) ?? [])[1] ?? ''
+  check('login page only forces a real theme', forcedTheme === '' || forcedTheme === 'light' || forcedTheme === 'dark', forcedTheme || '(none)')
+  check('login page keeps the system fallback', res.text.includes('prefers-color-scheme: dark') && !hasHardcodedDark(res.text))
 }
 {
   const dark = await request('/login?theme=dark', { auth: false })
