@@ -26,7 +26,9 @@
 | token 要挖日志 | `journalctl \| grep token` 才能进站 | 进程内自动兑换，浏览器永远见不到 token |
 | 明文 HTTP 功能报错 | 非安全上下文下 `crypto.randomUUID is not a function` | 注入 polyfill 兜底 |
 
-零运行时依赖（只用 Node 标准库），没有构建步骤，`dsh plugin add` 装完即跑。
+零运行时依赖（只用 Node 标准库）。npm 包里是预构建好的 JavaScript，所以 `dsh plugin add` 不需要任何工具链；从源码 checkout 构建是维护者命令（`npm run build`）。
+
+要求 **DeepSeek Harness `0.2.2-rc.1` 或更新版本**（`engines.dsh: >=0.2.2-rc.1 <0.3.0`）。宿主版本不匹配时整个 bundle 会被跳过——对一道前门来说等于闸门不启动，所以请升级 DSH，而不是删掉插件。
 
 ## 截图
 
@@ -37,10 +39,10 @@
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-web-guard/main/docs/admin.png" width="92%" alt="设置页">
+  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-web-guard/main/docs/settings.png" width="92%" alt="原生安全设置页">
 </p>
 
-<p align="center"><sub>登录页 &nbsp;·&nbsp; 退出确认页 &nbsp;·&nbsp; 设置页（改密码、会话与锁定策略、监听地址、在线设备）</sub></p>
+<p align="center"><sub>登录页 &nbsp;·&nbsp; 退出确认页 &nbsp;·&nbsp; DSH 设置面板里的原生「安全」页（跟随 DSH 明暗主题）</sub></p>
 
 ## 它怎么工作
 
@@ -143,7 +145,7 @@ config:
 
 ## 语言
 
-登录页和管理页跟随 DSH 的语言设置：插件读取 profile patch 文件
+登录页与设置页面跟随 DSH 的语言设置：插件读取 profile patch 文件
 （`~/.dsh/profiles/web/cordis.patch.yml`）里 `locale` 行的 `preference`，
 也就是 DSH 设置界面写入的同一个位置。目前支持中文和英文。没有显式偏好时，
 按浏览器的 `Accept-Language` 回退。
@@ -176,7 +178,7 @@ node -e "import('./lib/auth.js').then(m=>console.log(m.hashPassword(process.argv
 - 登录 POST 校验 `Origin` 的 hostname 与请求 `Host` 一致（只比 hostname，因为反代常剥端口）。CSRF 的第一道防线仍是 `SameSite`。
 - 同一 IP 连续失败会临时锁定（内存计数，重启清零）。
 - **会话表现在会落盘**（`<profile>/data/dsh-web-guard-sessions-<port>.json`，`0600`，临时文件 + rename 原子写入），所以**重启 DSH 不会把已登录的浏览器踢下线**。文件里存的同样是 SHA-256 摘要，不是 token——拿到这个文件或内存 dump 都无法伪造 cookie。文件名带监听端口，影子实例不会覆盖正式实例。
-- `/logout` 只退当前浏览器。要全部吊销（比如怀疑泄露），用管理页的**退出所有设备**：**重启不再等于吊销**。
+- `/logout` 只退当前浏览器。要全部吊销（比如怀疑泄露），用设置页的**退出所有设备**：**重启不再等于吊销**。
 
 **这不是多用户系统**：一个密码，一个权限级别。DSH 的 agent 本身能执行代码，任何登录者都拥有该机器的执行权限——这是产品设计，不是闸门的缺陷。
 
@@ -190,18 +192,20 @@ node -e "import('./lib/auth.js').then(m=>console.log(m.hashPassword(process.argv
 
 需要重启（升级、改配置）则完全无感：会话表会从磁盘恢复，页面自己重连回来。
 
-## 管理页
+## 设置页
 
-登录后 DSH 界面右下角会出现一个盾牌按钮，点开就是 `/__guard/admin`（也可以直接把地址收藏起来）：
+管理入口现在是 DSH 自己的一部分：**设置 → 安全**（与「通用设置 / 模型 / 内置插件」同一个面板，导航里带盾牌图标）。
 
 - 修改登录密码（必须验证当前密码）
-- 会话有效期、失败锁定次数与时长、页面标题、GitHub 链接 —— **保存即生效**
+- 会话有效期、失败锁定次数与时长 —— **保存即生效**
 - 监听地址/端口 —— 标注「重启后生效」
 - 活跃会话列表（来源 IP、浏览器、最后活动）：可以踢名单个设备，或一键退出所有设备
 
-未登录访问管理页只会被弹回登录页，且不保留跳转路径；登录页上不出现任何管理入口。
+这个页面渲染在 DSH 的 React 树里，因此直接继承宿主的明暗主题、滚动、焦点和移动端布局；窄屏下自动收成单列。
 
-**为什么不做成 DSH 设置页里的一项**：那需要 `dsh.client` 前端模块和构建产物（React + 打包），插件会从约 30 KB 涨到几百 KB，给一个本来没有构建链的项目引入工具链，还会绑死仍在变动的 slot API —— 版本对不上时整个设置页可能白屏。独立页面零构建、零依赖，DSH 升级也不受影响。
+右下角的盾牌按钮只作为**降级入口**保留：当客户端模块没有激活（宿主较旧或不兼容）时它才会出现，打开的仍是 `/__guard/admin`。该地址也可以直接访问，跟随操作系统明暗主题（`?theme=light|dark` 可强制）。未登录访问只会被弹回登录页，且不保留跳转路径；登录页上不出现任何管理入口。
+
+**为什么 v3 把设置页做成原生的**：服务端仍然负责全部鉴权与转发，但页面变成了 `dsh.client` 前端包——一个手写的 React 模块（用户侧不需要打包，React 由宿主模块表提供），注册进 `settings.section` 槽。DSH 没有向 React 树注入 HTML 的官方途径，想要一等公民入口只有这一条路。代价是要声明 `engines.dsh`、且浏览器半在未来的宿主上可能被跳过；注入的降级入口保证那种情况下插件仍可用，而服务端从不依赖浏览器半。
 
 ## 排障
 
@@ -218,25 +222,23 @@ node -e "import('./lib/auth.js').then(m=>console.log(m.hashPassword(process.argv
 ## 开发
 
 ```bash
-# 影子实例：复用真实 profile，但不改动它
-dsh --profile web --patch ./dev.yml --host 127.0.0.1 --port 3099 --no-open
+npm ci --ignore-scripts        # TypeScript + esbuild，仅构建期依赖
+npm run typecheck              # 服务端 + 客户端类型检查
+npm run build                  # src/ → lib/（tsc + 一次 esbuild 打包）；lib/ 入库
 
-# 对运行中的闸门跑 e2e
-GUARD_URL=http://127.0.0.1:3081 GUARD_PASSWORD=... node test/e2e.mjs
+# 影子实例：用真实 profile 跑这份 checkout，但不改动它。
+# 用独立的 DSH_HOME 隔离，避免影子闸门读写线上 profile 的 guard 状态。
+cp -a ~/.dsh/profiles/web /tmp/dsh-shadow-home/profiles/web
+cp dev.yml dev.local.yml       # 把 `name:` 指向本仓库的 lib/index.js
+DSH_HOME=/tmp/dsh-shadow-home dsh --profile web --patch ./dev.local.yml --host 127.0.0.1 --port 3099 --no-open
+
+# 对运行中的闸门跑 e2e（dev.yml 的闸门监听 3100）
+GUARD_URL=http://127.0.0.1:3100 GUARD_PASSWORD=dev-only-password node test/e2e.mjs
 ```
 
-`dev.yml` 只需要上面那段 `insert`，把 `listenHost` 改成 `127.0.0.1`、端口换开即可。
+插件只用公开的宿主 API：服务端用 `webServer.tapIndex`、`webServer.getOrigin`、`connection.authenticatedUrl`；客户端用文档化的 `ctx.slots` / `ctx.locale` 服务。没有 monkey-patching，也不改宿主源码。
 
-`main` 是发布分支，只放已发布并打过 tag 的代码；日常开发在 `dev` 分支，确认发版时才合并回 `main`。
-
-```bash
-git checkout dev
-# … 修改、提交、测试 …
-git checkout main && git merge --ff-only dev
-git tag -a vX.Y.Z && git push origin main --tags
-```
-
-插件只用了公开的 harness API：`webServer.register`、`webServer.tapIndex`、`webServer.getOrigin`、`connection.authenticatedUrl`。没有猴子补丁，没有改源码。
+`lib/client.js` 是一个 classic script，通过 `window.__ModuleLoader__.load()` 注册惰性工厂；React 从宿主共享模块表解析，不会被重复打包。`lib/` 与源码不一致时 CI 会失败。
 
 ## 配套插件
 

@@ -1,17 +1,26 @@
 {
   "name": "@lvxianchao/dsh-web-guard",
-  "version": "2.1.1",
-  "description": "Password login for the DeepSeek Harness Web UI, so it can be exposed on the internet: sign in from anywhere instead of chasing one-off tokens, with reverse-proxy quirks handled.",
+  "version": "3.0.0",
+  "description": "Password login for the DeepSeek Harness Web UI, so it can be exposed on the internet: sign in from anywhere instead of chasing one-off tokens, with reverse-proxy quirks handled. Ships a native DSH settings page.",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
     ".": "./lib/index.js",
+    "./client": "./lib/client.js",
     "./package.json": "./package.json",
     "./locale/*": "./locale/*"
   },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-renderer",
+        "@deepseek-ai/dsh-client-ui-settings"
+      ]
     }
   },
   "files": [
@@ -56,12 +65,25 @@
     "cordis"
   ],
   "engines": {
-    "node": ">=22.19"
+    "node": ">=22.19",
+    "dsh": ">=0.2.2-rc.1 <0.3.0"
   },
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "test": "node test/e2e.mjs"
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.client.json",
+    "test": "node test/e2e.mjs",
+    "prepare": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.2",
+    "esbuild": "^0.28.2",
+    "typescript": "^5.9.3"
+  },
+  "allowScripts": {
+    "esbuild": true
   }
 }

@@ -1,0 +1,177 @@
+/**
+ * Copy for the native settings page.
+ *
+ * The namespace is `webGuard`; the host dictionary registry receives both
+ * languages at activation. Keys must exist in both dictionaries — the harness
+ * falls back to English by key, so a missing zh key would leak an English line
+ * into a Chinese UI rather than break, but the sets are kept identical here.
+ */
+
+/** Dictionary shape accepted by the host locale registry. */
+export type LocaleDict = Record<string, string>
+
+/** Chinese copy (source of truth for the key set). */
+export const zh: LocaleDict = {
+  'settings.title': '安全',
+  'settings.lead': '登录密码与访问控制由 dsh-web-guard 管理。',
+
+  'common.loading': '加载中…',
+  'common.retry': '重试',
+  'common.saving': '保存中…',
+
+  'policy.section': '安全策略',
+  'policy.description': '控制登录会话的有效期，以及连续登录失败后的锁定策略。',
+  'policy.sessionDays': '会话有效期（天）',
+  'policy.sessionDaysHint': '0 表示仅在浏览器会话内有效；范围 0–365。',
+  'policy.maxAttempts': '最大失败尝试次数',
+  'policy.maxAttemptsHint': '连续失败达到该次数后锁定来源地址；范围 1–50。',
+  'policy.lockMinutes': '锁定时长（分钟）',
+  'policy.lockMinutesHint': '范围 1–1440。',
+  'policy.save': '保存策略',
+  'policy.saved': '安全策略已保存。',
+
+  'password.section': '修改密码',
+  'password.description': '新密码至少 6 个字符。修改后，新的登录需要使用新密码。',
+  'password.current': '当前密码',
+  'password.next': '新密码',
+  'password.confirm': '确认新密码',
+  'password.submit': '更新密码',
+  'password.saved': '密码已更新。',
+  'password.requiredCurrent': '请输入当前密码。',
+  'password.requiredNext': '请输入新密码。',
+
+  'listener.section': '监听地址',
+  'listener.description': 'DSH 网关监听的地址与端口。修改后需要重启 DSH 才能生效。',
+  'listener.host': '监听地址',
+  'listener.hostHint': '例如 0.0.0.0 或 127.0.0.1；最多 64 个字符。',
+  'listener.port': '端口',
+  'listener.portHint': '范围 1–65535。',
+  'listener.save': '保存监听设置',
+  'listener.saved': '监听设置已保存。',
+  'listener.restartRequired': '监听设置已保存，重启 DSH 后生效。',
+  'listener.restartBadge': '重启生效',
+
+  'sessions.section': '活跃会话',
+  'sessions.description': '当前仍有效的登录会话。踢出后该设备需要重新登录。',
+  'sessions.empty': '暂无活跃会话。',
+  'sessions.ip': 'IP',
+  'sessions.ua': '浏览器',
+  'sessions.lastSeen': '最后活动',
+  'sessions.signedIn': '登录于 {time}',
+  'sessions.current': '本机',
+  'sessions.kick': '踢出',
+  'sessions.kicking': '踢出中…',
+  'sessions.kicked': '已踢出该会话。',
+  'sessions.refresh': '刷新',
+
+  'signout.section': '退出所有设备',
+  'signout.description': '立即令所有设备上的登录会话失效，包括当前设备。',
+  'signout.action': '退出所有设备',
+  'signout.confirm': '确定要退出所有设备吗？当前页面也需要重新登录。',
+  'signout.done': '已退出所有设备。',
+  'signout.goLogin': '前往登录页',
+
+  'field.sessionDays': '会话有效期',
+  'field.maxAttempts': '最大失败尝试次数',
+  'field.lockMinutes': '锁定时长',
+  'field.listenHost': '监听地址',
+  'field.listenPort': '监听端口',
+
+  'error.unauthorized': '登录状态已失效，请重新登录。',
+  'error.forbidden': '请求被拒绝（跨站请求或权限不足）。',
+  'error.invalid_body': '请求内容无效。',
+  'error.invalid_field': '“{field}”的值无效，请检查允许范围。',
+  'error.wrong_current': '当前密码不正确。',
+  'error.too_short': '新密码至少需要 6 个字符。',
+  'error.mismatch': '两次输入的新密码不一致。',
+  'error.not_found': '接口不存在，请确认服务端版本。',
+  'error.method_not_allowed': '该接口不支持这种请求方式。',
+  'error.kick_missing': '该会话已不存在，列表可能已过期。',
+  'error.restart_required': '需要重启 DSH 才能应用该改动。',
+  'error.network': '无法连接到服务器，请检查网络后重试。',
+  'error.unknown': '服务器返回了无法识别的响应。',
+  'error.generic': '操作失败：{error}',
+}
+
+/** English copy with the same key set as {@link zh}. */
+export const en: LocaleDict = {
+  'settings.title': 'Security',
+  'settings.lead': 'Sign-in password and access control are managed by dsh-web-guard.',
+
+  'common.loading': 'Loading…',
+  'common.retry': 'Retry',
+  'common.saving': 'Saving…',
+
+  'policy.section': 'Security policy',
+  'policy.description': 'Control how long signed-in sessions last and how repeated failures lock the source address.',
+  'policy.sessionDays': 'Session lifetime (days)',
+  'policy.sessionDaysHint': '0 keeps the session for the browser session only; range 0–365.',
+  'policy.maxAttempts': 'Maximum failed attempts',
+  'policy.maxAttemptsHint': 'The source address is locked after this many consecutive failures; range 1–50.',
+  'policy.lockMinutes': 'Lockout duration (minutes)',
+  'policy.lockMinutesHint': 'Range 1–1440.',
+  'policy.save': 'Save policy',
+  'policy.saved': 'Security policy saved.',
+
+  'password.section': 'Change password',
+  'password.description': 'At least 6 characters. After the change, new sign-ins must use the new password.',
+  'password.current': 'Current password',
+  'password.next': 'New password',
+  'password.confirm': 'Confirm new password',
+  'password.submit': 'Update password',
+  'password.saved': 'Password updated.',
+  'password.requiredCurrent': 'Enter the current password.',
+  'password.requiredNext': 'Enter the new password.',
+
+  'listener.section': 'Listener',
+  'listener.description': 'Host and port the DSH gate listens on. Changes apply only after DSH restarts.',
+  'listener.host': 'Host',
+  'listener.hostHint': 'For example 0.0.0.0 or 127.0.0.1; at most 64 characters.',
+  'listener.port': 'Port',
+  'listener.portHint': 'Range 1–65535.',
+  'listener.save': 'Save listener',
+  'listener.saved': 'Listener settings saved.',
+  'listener.restartRequired': 'Listener settings saved; they apply after DSH restarts.',
+  'listener.restartBadge': 'Restart required',
+
+  'sessions.section': 'Active sessions',
+  'sessions.description': 'Sessions that are still signed in. Kicking one forces that device to sign in again.',
+  'sessions.empty': 'No active sessions.',
+  'sessions.ip': 'IP',
+  'sessions.ua': 'Browser',
+  'sessions.lastSeen': 'Last active',
+  'sessions.signedIn': 'Signed in {time}',
+  'sessions.current': 'This device',
+  'sessions.kick': 'Kick',
+  'sessions.kicking': 'Kicking…',
+  'sessions.kicked': 'Session kicked.',
+  'sessions.refresh': 'Refresh',
+
+  'signout.section': 'Sign out everywhere',
+  'signout.description': 'Immediately invalidate every signed-in session, including this device.',
+  'signout.action': 'Sign out everywhere',
+  'signout.confirm': 'Sign out all devices? This page will need to sign in again.',
+  'signout.done': 'Signed out everywhere.',
+  'signout.goLogin': 'Go to sign-in page',
+
+  'field.sessionDays': 'Session lifetime',
+  'field.maxAttempts': 'Maximum failed attempts',
+  'field.lockMinutes': 'Lockout duration',
+  'field.listenHost': 'Listener host',
+  'field.listenPort': 'Listener port',
+
+  'error.unauthorized': 'Your session has expired. Sign in again.',
+  'error.forbidden': 'Request rejected (cross-site request or insufficient permission).',
+  'error.invalid_body': 'The request body is invalid.',
+  'error.invalid_field': '"{field}" is invalid; check the allowed range.',
+  'error.wrong_current': 'The current password is incorrect.',
+  'error.too_short': 'The new password must be at least 6 characters.',
+  'error.mismatch': 'The new passwords do not match.',
+  'error.not_found': 'This endpoint does not exist; check the server version.',
+  'error.method_not_allowed': 'This endpoint does not support that request method.',
+  'error.kick_missing': 'That session no longer exists; the list may be stale.',
+  'error.restart_required': 'Restart DSH to apply this change.',
+  'error.network': 'Could not reach the server. Check the connection and retry.',
+  'error.unknown': 'The server returned an unrecognized response.',
+  'error.generic': 'Request failed: {error}',
+}

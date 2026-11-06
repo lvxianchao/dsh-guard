@@ -1,9 +1,18 @@
 # Shadow instance overlay: mounts dsh-web-guard onto the real web profile without
-# editing it. Start with:
+# editing it. The harness then listens on 3099 and the gate on 3100.
 #
-#   dsh --profile web --patch ./dev.yml --host 127.0.0.1 --port 3099 --no-open
+# Run it from an isolated DSH_HOME: the guard derives its state file (password,
+# settings, session cache) from the profile patch directory, so a shadow run
+# against the live profile would read and write the live gate's state.
 #
-# then run the harness on 3099 and the gate on 3100.
+#   npm run build
+#   cp -a ~/.dsh/profiles/web /tmp/dsh-shadow-home/profiles/web
+#   cp dev.yml dev.local.yml          # point `name:` at this checkout's lib/index.js
+#   DSH_HOME=/tmp/dsh-shadow-home dsh --profile web --patch ./dev.local.yml \
+#     --host 127.0.0.1 --port 3099 --no-open
+#
+# The shadow gate then answers on http://127.0.0.1:3100 (password below).
+
 - insert:
     - id: guard
       name: '/absolute/path/to/dsh-web-guard/lib/index.js'

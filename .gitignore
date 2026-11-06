@@ -1,4 +1,7 @@
 node_modules/
 *.log
 dsh-web-guard.json
+data/
+dev.local.yml
+*.tsbuildinfo
 .DS_Store

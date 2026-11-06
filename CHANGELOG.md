@@ -1,5 +1,29 @@
 # Changelog
 
+## 3.0.0 — 2026-11-06
+
+### Breaking
+
+- **The settings surface moved into DSH Settings.** v3 ships a `dsh.client` bundle that adds a native **安全 / Security** page to the harness Settings panel (and removes the old floating shield button). The page follows the harness light/dark theme, uses the harness scrolling and keyboard behaviour, and is the entry point from now on. `/__guard/admin` and `/login` still work when opened directly, and the floating shield stays only as a fallback when the client bundle is not active.
+- **Requires DSH `0.2.2-rc.1` or newer** (`engines.dsh: >=0.2.2-rc.1 <0.3.0`). On an incompatible host the whole bundle is skipped — the gate then does not listen at all, which is the safe direction for a front door, but upgrade DSH before upgrading this plugin.
+- **The sources are TypeScript now.** The published package still ships plain JS and has no runtime dependencies, so `dsh plugin add` needs no toolchain; building is a maintainer concern.
+
+### Added
+
+- Native settings page in the harness: password change, session lifetime, lockout threshold/duration, listener address and port, live session list with per-device revoke, sign out everywhere.
+- JSON API behind the native page (`/__guard/api/*`) sharing the same mutators as the form routes.
+- Light/dark palettes for the login, sign-out and fallback admin pages: they follow the operating system by default and accept `?theme=light|dark` for an explicit override.
+- The fallback shield/overlay now uses the harness theme tokens and no longer sizes itself with `100vh`, so it no longer covers the composer send button or clips its header on mobile.
+
+### Changed
+
+- README and AGENTS.md describe the v3 architecture: `src/` → `lib/` build, the native settings page, and the fallback behaviour.
+
+### Internal
+
+- Build: `tsc` for the server half, `esbuild` for the single-file client bundle; `lib/` is committed so every install path gets the same prebuilt bytes, and CI rejects stale artifacts.
+- CI: typecheck + build + artifact freshness on every push and pull request; the release workflow builds before publishing.
+
 ## 2.1.1 — 2026-11-05
 
 ### Docs

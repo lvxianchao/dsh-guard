@@ -26,7 +26,9 @@
 | Token lives in the journal | `journalctl \| grep token` before you can get in | Exchanged in-process; the browser never sees a token |
 | UI breaks on plain HTTP | `crypto.randomUUID is not a function` outside a secure context | Injects a `getRandomValues` polyfill |
 
-Zero runtime dependencies (Node standard library only), no build step — `dsh plugin add` and it runs.
+Zero runtime dependencies (Node standard library only). The npm package ships prebuilt JavaScript, so `dsh plugin add` needs no toolchain; building from a checkout is a maintainer command (`npm run build`).
+
+Requires **DeepSeek Harness `0.2.2-rc.1` or newer** (`engines.dsh: >=0.2.2-rc.1 <0.3.0`). On an incompatible host the whole bundle is skipped — for a front door that means the gate does not start, so upgrade DSH rather than removing the plugin.
 
 ## Screenshots
 
@@ -37,10 +39,10 @@ Zero runtime dependencies (Node standard library only), no build step — `dsh p
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-web-guard/main/docs/admin-en.png" width="92%" alt="Admin page">
+  <img src="https://raw.githubusercontent.com/lvxianchao/dsh-web-guard/main/docs/settings-en.png" width="92%" alt="Security settings page">
 </p>
 
-<p align="center"><sub>Login page &nbsp;·&nbsp; sign-out confirmation &nbsp;·&nbsp; admin page (password, session and lockout policy, listener, live sessions)</sub></p>
+<p align="center"><sub>Login page &nbsp;·&nbsp; sign-out confirmation &nbsp;·&nbsp; native Security page in the harness settings (follows the harness light/dark theme)</sub></p>
 
 ## How it works
 
@@ -148,7 +150,7 @@ Set the upstream to `http://<dsh-host>:3081` and enable WebSocket support. **No 
 
 ## Language
 
-The login and admin pages follow the harness language setting: the plugin reads
+The login page and the settings surfaces follow the harness language setting: the plugin reads
 `preference` from the `locale` row in the profile patch file (`~/.dsh/profiles/web/cordis.patch.yml`),
 which is exactly where the harness settings UI writes it. Chinese and English are
 supported. With no explicit preference the pages fall back to the browser's
@@ -182,7 +184,7 @@ node -e "import('./lib/auth.js').then(m=>console.log(m.hashPassword(process.argv
 - Login POSTs are checked for a same-hostname `Origin`. The session cookie's `SameSite` attribute is the primary CSRF defence.
 - Repeated failures from one IP trigger a temporary lock (in-memory, cleared on restart).
 - **The session table is cached on disk** (`<profile>/data/dsh-web-guard-sessions-<port>.json`, mode `0600`, atomic tmp+rename), so **restarting DSH no longer signs signed-in browsers out**. The file holds SHA-256 digests, never tokens — neither the cache nor a heap dump can mint a working cookie. The filename carries the listener port, so a shadow instance cannot overwrite the live one.
-- `/logout` ends the current browser session. To revoke everything (a suspected leak, say), use the admin page's **sign out all devices** — **a restart is not a revocation any more**.
+- `/logout` ends the current browser session. To revoke everything (a suspected leak, say), use the settings page's **sign out all devices** — **a restart is not a revocation any more**.
 
 **This is not multi-user.** One password, one privilege level. The harness agent can execute code, so anyone who gets in has code execution on that host — which is the product's design, not a bug in the gate.
 
@@ -196,18 +198,20 @@ If the session disappears (password changed, sign-out-all, or no activity within
 
 Restarts (upgrades, config changes) are invisible: the session table is restored from disk and the page reconnects on its own.
 
-## Admin page
+## Settings page
 
-A shield button appears at the bottom-right of the harness UI once you are signed in. It opens `/__guard/admin` (bookmark the URL if you prefer):
+The management surface is part of the harness itself: **Settings → Security** (the same panel that holds General, Models and Agent presets; a shield icon marks the section).
 
-- change the password (the current one is required)
-- session lifetime, lockout threshold/duration, page title, repository link — **applied on save**
+- change the sign-in password (the current one is required)
+- session lifetime, lockout threshold/duration — **applied on save**
 - listen host/port — marked "takes effect after restart"
 - live session list (source IP, browser, last activity): kick one device, or sign out everywhere
 
-Anonymous visitors are redirected to the login page with no `next` echo, and the login page does not advertise the admin path.
+The page renders inside the harness React tree, so it inherits the harness light/dark theme, scrolling, focus handling and mobile layout. On a narrow screen it collapses to a single column.
 
-**Why not a harness settings page instead:** that requires a `dsh.client` bundle (React plus a build step), which takes the plugin from ~30 KB to hundreds of KB, adds a build toolchain to a project that otherwise has none, and ties it to the harness slot API while that API is still moving — a version mismatch can blank the whole settings screen. A standalone page stays build-free and survives harness upgrades.
+A shield button in the bottom-right corner survives only as a **fallback**: it appears when the client bundle is not active (an older or incompatible host) and opens the same settings at `/__guard/admin`. That URL stays reachable directly and follows the operating system theme (`?theme=light|dark` forces one). Anonymous visitors are redirected to the login page with no `next` echo, and the login page does not advertise the settings path.
+
+**Why v3 makes the settings page native.** The server half still does all the gating, but the page is now a `dsh.client` bundle: a hand-written React module (no bundler for users, React comes from the host module table) registered into the `settings.section` slot. The harness exposes no HTML-injection route into its React tree, so a first-class entry requires exactly this. The trade-off is a declared `engines.dsh` range and a browser half that a future host may skip; the injected fallback keeps the plugin usable there, and the server half never depends on the browser half.
 
 ## Troubleshooting
 
@@ -224,16 +228,23 @@ All log lines are prefixed `[dsh-web-guard]` and share the harness's journal str
 ## Development
 
 ```bash
-# shadow instance: serves the real profile without touching it
-dsh --profile web --patch ./dev.yml --host 127.0.0.1 --port 3099 --no-open
+npm ci --ignore-scripts        # TypeScript + esbuild, build-time only
+npm run typecheck              # server and client halves
+npm run build                  # src/ → lib/ (tsc + one esbuild bundle); lib/ is committed
 
-# e2e against a running gate
-GUARD_URL=http://127.0.0.1:3081 GUARD_PASSWORD=... node test/e2e.mjs
+# Shadow instance: serves this checkout through the real profile without editing it.
+# An isolated DSH_HOME keeps the shadow gate away from the live profile's guard state.
+cp -a ~/.dsh/profiles/web /tmp/dsh-shadow-home/profiles/web
+cp dev.yml dev.local.yml       # then point `name:` at this checkout's lib/index.js
+DSH_HOME=/tmp/dsh-shadow-home dsh --profile web --patch ./dev.local.yml --host 127.0.0.1 --port 3099 --no-open
+
+# e2e against the running gate (dev.yml listens on 3100)
+GUARD_URL=http://127.0.0.1:3100 GUARD_PASSWORD=dev-only-password node test/e2e.mjs
 ```
 
-`dev.yml` only needs the `insert` row shown above with `listenHost: 127.0.0.1` and a distinct port.
+The plugin uses only public harness APIs: `webServer.tapIndex`, `webServer.getOrigin` and `connection.authenticatedUrl` on the server, and the documented `ctx.slots` / `ctx.locale` services in the client bundle. No monkey-patching, no source modification.
 
-The plugin uses only public harness APIs: `webServer.register`, `webServer.tapIndex`, `webServer.getOrigin`, and `connection.authenticatedUrl`. No monkey-patching, no source modification.
+`lib/client.js` is one classic script that registers a lazy factory through `window.__ModuleLoader__.load()`; React is resolved from the host's shared module table, so it is never bundled twice. CI fails when `lib/` is stale.
 
 ## Companion plugin
 

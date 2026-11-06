@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # --ignore-scripts keeps this job to a plain install: `prepare` would run
+      # the build twice, and the explicit steps below are what gate the change.
+      - name: Install toolchain
+        run: npm ci --ignore-scripts
+
+      - name: Typecheck (server + client)
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Built artifacts must be committed
+        run: |
+          if ! git diff --quiet -- lib; then
+            echo "::error::lib/ is stale — run 'npm run build' and commit the result"
+            git diff --stat -- lib
+            exit 1
+          fi
