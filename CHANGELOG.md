@@ -4,7 +4,7 @@
 
 ### Breaking
 
-- **The settings surface moved into DSH Settings.** v3 ships a `dsh.client` bundle that adds a native **安全 / Security** page to the harness Settings panel (and removes the old floating shield button). The page follows the harness light/dark theme, uses the harness scrolling and keyboard behaviour, and is the entry point from now on. `/__guard/admin` and `/login` still work when opened directly, and the floating shield stays only as a fallback when the client bundle is not active.
+- **The settings surface moved into DSH Settings.** v3 ships a `dsh.client` bundle that adds a native **DSH Web Guard** page to the harness Settings panel (and removes the old floating shield button). The page follows the harness light/dark theme, uses the harness scrolling and keyboard behaviour, and is the entry point from now on. `/__guard/admin` and `/login` still work when opened directly, and the floating shield stays only as a fallback when the client bundle is not active.
 - **Requires DSH `0.2.2-rc.1` or newer** (`engines.dsh: >=0.2.2-rc.1 <0.3.0`). On an incompatible host the whole bundle is skipped — the gate then does not listen at all, which is the safe direction for a front door, but upgrade DSH before upgrading this plugin.
 - **The sources are TypeScript now.** The published package still ships plain JS and has no runtime dependencies, so `dsh plugin add` needs no toolchain; building is a maintainer concern.
 

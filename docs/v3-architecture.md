@@ -10,7 +10,7 @@ Internal design note, not shipped (the `files` list has no `docs/` entry besides
    `dsh plugin add github:…`, a checkout install and the npm tarball all ship
    prebuilt JS — users still install with no toolchain.
 2. Native settings page. A `dsh.client` bundle registers a `settings.section`
-   page (id `web-guard`, DSH Settings → 安全) and its `settings.section.icon`.
+   page (id `web-guard`, DSH Settings → DSH Web Guard) and its `settings.section.icon`.
    It renders in the harness React tree with `--dsw-alias-*` tokens, so theme,
    scrolling, keyboard handling and mobile layout come from the host.
 3. The old floating shield + iframe stays only as a **fallback**: the client

@@ -200,7 +200,7 @@ Restarts (upgrades, config changes) are invisible: the session table is restored
 
 ## Settings page
 
-The management surface is part of the harness itself: **Settings → Security** (the same panel that holds General, Models and Agent presets; a shield icon marks the section).
+The management surface is part of the harness itself: **Settings → DSH Web Guard** (the same panel that holds General, Models and Agent presets; the entry is labelled with the plugin name and carries a shield icon).
 
 - change the sign-in password (the current one is required)
 - session lifetime, lockout threshold/duration — **applied on save**

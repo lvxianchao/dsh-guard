@@ -12,6 +12,7 @@ export type LocaleDict = Record<string, string>
 
 /** Chinese copy (source of truth for the key set). */
 export const zh: LocaleDict = {
+  'settings.navLabel': 'DSH Web Guard',
   'settings.title': '安全',
   'settings.lead': '登录密码与访问控制由 dsh-web-guard 管理。',
 
@@ -95,6 +96,7 @@ export const zh: LocaleDict = {
 
 /** English copy with the same key set as {@link zh}. */
 export const en: LocaleDict = {
+  'settings.navLabel': 'DSH Web Guard',
   'settings.title': 'Security',
   'settings.lead': 'Sign-in password and access control are managed by dsh-web-guard.',
 

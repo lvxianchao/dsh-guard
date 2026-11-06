@@ -34,7 +34,7 @@ curl -s http://127.0.0.1:3081/__guard/health
 journalctl -u dsh-web --since -5min | grep '\[dsh-web-guard\]'
 ```
 
-On first start a password is generated, printed once to the terminal, and stored hashed in `<profile>/data/dsh-web-guard.json` (mode `0600`). The real end-to-end check is a browser login on `/login`, then **Settings → Security** in the harness.
+On first start a password is generated, printed once to the terminal, and stored hashed in `<profile>/data/dsh-web-guard.json` (mode `0600`). The real end-to-end check is a browser login on `/login`, then **Settings → DSH Web Guard** in the harness.
 
 ## Configure
 
