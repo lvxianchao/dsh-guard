@@ -205,7 +205,7 @@ The management surface is part of the harness itself: **Settings → DSH Web Gua
 - change the sign-in password (the current one is required)
 - session lifetime, lockout threshold/duration — **applied on save**
 - listen host/port — marked "takes effect after restart"
-- live session list (source IP, browser, last activity): kick one device, or sign out everywhere
+- live session list (source IP, browser, last activity): sign out just this device, kick another device, or sign out everywhere
 
 The page renders inside the harness React tree, so it inherits the harness light/dark theme, scrolling, focus handling and mobile layout. On a narrow screen it collapses to a single column.
 

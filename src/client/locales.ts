@@ -64,6 +64,7 @@ export const zh: LocaleDict = {
   'sessions.kicking': '踢出中…',
   'sessions.kicked': '已踢出该会话。',
   'sessions.refresh': '刷新',
+  'sessions.signOut': '退出登录',
 
   'signout.section': '退出所有设备',
   'signout.description': '立即令所有设备上的登录会话失效，包括当前设备。',
@@ -71,6 +72,7 @@ export const zh: LocaleDict = {
   'signout.confirm': '确定要退出所有设备吗？当前页面也需要重新登录。',
   'signout.done': '已退出所有设备。',
   'signout.goLogin': '前往登录页',
+  'signout.self': '退出登录（本设备）',
 
   'field.sessionDays': '会话有效期',
   'field.maxAttempts': '最大失败尝试次数',
@@ -148,6 +150,7 @@ export const en: LocaleDict = {
   'sessions.kicking': 'Kicking…',
   'sessions.kicked': 'Session kicked.',
   'sessions.refresh': 'Refresh',
+  'sessions.signOut': 'Sign out',
 
   'signout.section': 'Sign out everywhere',
   'signout.description': 'Immediately invalidate every signed-in session, including this device.',
@@ -155,6 +158,7 @@ export const en: LocaleDict = {
   'signout.confirm': 'Sign out all devices? This page will need to sign in again.',
   'signout.done': 'Signed out everywhere.',
   'signout.goLogin': 'Go to sign-in page',
+  'signout.self': 'Sign out on this device',
 
   'field.sessionDays': 'Session lifetime',
   'field.maxAttempts': 'Maximum failed attempts',

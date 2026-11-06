@@ -768,7 +768,13 @@ export function GuardSettings({ t }: GuardSettingsProps): ReactElement {
                           </span>
                         </td>
                         <td className="wg-cellAction">
-                          {session.current ? null : (
+                          {session.current ? (
+                            // The current device cannot be "kicked" through the API;
+                            // its own action is the ordinary per-device sign-out.
+                            <a className="wg-btn" href="/logout">
+                              {translate('sessions.signOut')}
+                            </a>
+                          ) : (
                             <button
                               type="button"
                               className="wg-btn wg-btnDanger"
@@ -802,6 +808,13 @@ export function GuardSettings({ t }: GuardSettingsProps): ReactElement {
                   {translate('signout.goLogin')}
                 </a>
               ) : (
+                // Ordinary sign-out first (the common case), then the heavier
+                // "sign out everywhere" action that also drops every other device.
+                <a className="wg-btn" href="/logout">
+                  {translate('signout.self')}
+                </a>
+              )}
+              {signedOut ? null : (
                 <button
                   type="button"
                   className="wg-btn wg-btnDanger"

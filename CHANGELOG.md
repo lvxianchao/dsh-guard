@@ -10,7 +10,7 @@
 
 ### Added
 
-- Native settings page in the harness: password change, session lifetime, lockout threshold/duration, listener address and port, live session list with per-device revoke, sign out everywhere.
+- Native settings page in the harness: password change, session lifetime, lockout threshold/duration, listener address and port, live session list with per-device sign out (current device) and revoke (other devices), sign out everywhere.
 - JSON API behind the native page (`/__guard/api/*`) sharing the same mutators as the form routes.
 - Light/dark palettes for the login, sign-out and fallback admin pages: they follow the operating system by default and accept `?theme=light|dark` for an explicit override.
 - The fallback shield/overlay now uses the harness theme tokens and no longer sizes itself with `100vh`, so it no longer covers the composer send button or clips its header on mobile.
